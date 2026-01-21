@@ -1186,6 +1186,10 @@ class GeneradorCartasGUI(QMainWindow):
             self.aseguradora_combo.setEditText("SEGUROS DE VIDA SURAMERICANA S.A.")
             self.nit_aseguradora.setText("890903790-5")
         
+        # Retorno - ejemplo con dato de prueba
+        self.check_incluir_retorno.setChecked(True)
+        self.retorno_input.setText("Retorno a cuenta de ahorros del titular")
+        
         # Cambiar a la primera pestaña para que vea los datos
         self.sub_tabs.setCurrentIndex(0)
         
@@ -1357,7 +1361,9 @@ class GeneradorCartasGUI(QMainWindow):
                 payee_company_nit=nit_aseguradora,
                 firmante_nombre=self.nombre_firmante.text().strip(),
                 firmante_cargo=self.cargo_firmante.text().strip(),
-                firmante_iniciales=self.iniciales.text().strip()
+                firmante_iniciales=self.iniciales.text().strip(),
+                retorno=self.retorno_input.text().strip(),
+                incluir_retorno=self.check_incluir_retorno.isChecked()
             )
             
             # Generar nombre de archivo

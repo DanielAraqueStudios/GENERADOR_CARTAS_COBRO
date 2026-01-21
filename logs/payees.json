@@ -8,7 +8,7 @@
     {
       "name": "SEGUROS BOLÍVAR S.A.",
       "nit": "860002503-4",
-      "usage_count": 26,
+      "usage_count": 27,
       "link_pago": "https://www.grupobolivar.com.co/"
     },
     {
@@ -27,5 +27,5 @@
       "usage_count": 1
     }
   ],
-  "last_updated": "C:\\Users\\danie\\Documents\\EMPRESA\\SEGUROS UNIÓN\\AUTOMATIZACIONES\\GENERADOR_CARTAS_COBRO\\utils"
+  "last_updated": "c:\\Users\\danie\\Documents\\EMPRESA\\SEGUROS UNIÓN\\AUTOMATIZACIONES\\GENERADOR_CARTAS_COBRO\\utils"
 }

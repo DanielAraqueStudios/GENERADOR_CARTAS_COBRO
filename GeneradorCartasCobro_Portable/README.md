@@ -1,310 +1,469 @@
 # 📄 Generador de Cartas de Cobro - SEGUROS UNIÓN
 
-Sistema profesional de generación automática de cartas de cobro y documentos legales en formato PDF, diseñado para SEGUROS UNIÓN con interfaz gráfica moderna y sistema de plantillas flexible.
+Sistema profesional de generación automática de cartas de cobro en formato PDF, diseñado para SEGUROS UNIÓN con interfaz gráfica moderna en dark mode, gestión completa de aseguradoras y generación de ejecutables standalone.
 
 ## 🎯 Objetivo del Proyecto
 
 Automatizar la generación de cartas de cobro personalizadas con:
-- **Interfaz gráfica profesional** (PyQt6) para captura de datos
-- **Motor de plantillas** configurable para diferentes tipos de cartas
-- **Validación en tiempo real** de datos del asegurado y póliza
-- **Generación PDF** con formato legal profesional (ReportLab)
-- **Trazabilidad completa** con registro de auditoría y versionado
+- **Interfaz gráfica moderna** (PyQt6 Dark Mode) para captura de datos
+- **Gestión de aseguradoras** con sistema CRUD completo
+- **Validación flexible** de datos del asegurado y póliza (adaptado a datos reales)
+- **Generación PDF profesional** con formato legal colombiano (ReportLab)
+- **Selección de carpeta de salida** para organizar archivos
+- **Ejecutable standalone** (.exe) listo para distribución
+- **Trazabilidad completa** con registro de auditoría
 
 ## 🏗️ Arquitectura del Sistema
 
 ```
-┌─────────────────┐
-│   GUI (PyQt6)   │  ← Formularios auto-generados desde plantillas
-└────────┬────────┘
-         │
-┌────────▼────────┐
-│   Validadores   │  ← Validación de datos (correo, teléfono, NIF, póliza)
-└────────┬────────┘
-         │
-┌────────▼────────┐
-│  Motor Plantilla│  ← Carga plantillas JSON y mapea datos
-└────────┬────────┘
-         │
-┌────────▼────────┐
-│  Generador PDF  │  ← ReportLab: formato legal, tablas, firmas
-└────────┬────────┘
-         │
-┌────────▼────────┐
-│  Audit Trail    │  ← Logs, versiones, metadatos
-└─────────────────┘
+┌──────────────────────┐
+│   GUI Simple (PyQt6) │  ← Interfaz Dark Mode en un solo archivo
+│   - Tabs organizadas │  ← 3 sub-tabs para formulario extenso
+│   - CRUD Aseguradoras│  ← Gestión completa inline
+│   - Selector carpeta │  ← Configurar destino de PDFs
+└──────────┬───────────┘
+           │
+┌──────────▼───────────┐
+│  Modelos Pydantic    │  ← Validación flexible de datos
+│  - Asegurado         │  ← NIT, dirección, teléfono
+│  - Poliza            │  ← Número flexible, tipos normalizados
+│  - Documento         │  ← Carta completa con metadatos
+│  - MontosCobro       │  ← Prima, IVA, otros, total calculado
+└──────────┬───────────┘
+           │
+┌──────────▼───────────┐
+│  Generadores PDF     │  ← ReportLab con formato legal
+│  - CartaCobro        │  ← Headers, tablas, firmas
+│  - BaseGenerator     │  ← Clase abstracta reutilizable
+└──────────┬───────────┘
+           │
+┌──────────▼───────────┐
+│  Utils / Managers    │  ← Servicios auxiliares
+│  - PayeeManager      │  ← CRUD aseguradoras (JSON)
+│  - Logger            │  ← Auditoría completa
+│  - Config            │  ← Configuración global
+└──────────────────────┘
 ```
 
 ## 🛠️ Stack Tecnológico
 
 ### Backend
-- **Python 3.10+** - Lenguaje principal
+- **Python 3.13.2** - Lenguaje principal
 - **ReportLab 4.0+** - Generación de PDFs con control preciso de diseño
-- **Pydantic 2.0+** - Validación de datos y modelos
-- **Threading** - Operaciones no bloqueantes en GUI
+- **Pydantic 2.0+** - Validación flexible de datos y modelos
+- **PyInstaller 6.18+** - Empaquetado de ejecutables standalone
 
 ### Frontend
-- **PyQt6 6.6+** - Interfaz gráfica profesional
-- **Qt Designer** - Diseño visual de formularios
+- **PyQt6 6.6+** - Interfaz gráfica moderna con Dark Mode
+- **QSS (Qt Style Sheets)** - Diseño personalizado con gradientes
 
 ### Utilidades
-- **JSON** - Configuración de plantillas
-- **Logging** - Registro de auditoría
+- **JSON** - Persistencia de aseguradoras y configuración
+- **Logging** - Registro de auditoría completo
 - **pathlib** - Manejo de rutas multiplataforma
+
+### Validación Colombia
+- **Algoritmo DIAN** - Validación de dígito verificador NIT
+- **Formato moneda COP** - 1.372.412,00 (punto miles, coma decimales)
+- **Validación teléfonos** - Formato colombiano 10 dígitos
 
 ## 📂 Estructura de Archivos
 
 ```
 GENERADOR_CARTAS_COBRO/
 │
-├── templates/                  # Plantillas de documentos (JSON)
-│   ├── carta_cobro_primera.json
-│   ├── carta_cobro_segunda.json
-│   ├── carta_cobro_judicial.json
-│   └── template_schema.json
+├── gui_simple.py               # 🎨 GUI PRINCIPAL - Un solo archivo (~1200 líneas)
+│                               #    - Interfaz Dark Mode completa
+│                               #    - 3 sub-tabs organizadas
+│                               #    - CRUD aseguradoras inline
+│                               #    - Selección carpeta salida
 │
-├── generators/                 # Generadores PDF por tipo de documento
+├── build_exe.py                # 🔨 Script de construcción de .exe
+│                               #    - Instala PyInstaller automáticamente
+│                               #    - Limpia builds anteriores
+│                               #    - Crea ejecutable + paquete portable
+│
+├── generators/                 # 📄 Generadores PDF por tipo de documento
 │   ├── __init__.py
 │   ├── base_generator.py      # Clase base abstracta
-│   ├── carta_cobro_generator.py
+│   ├── carta_cobro_generator.py  # Generador de cartas de cobro
 │   └── pdf_components.py      # Componentes reutilizables (headers, footers)
 │
-├── gui/                        # Interfaz gráfica PyQt6
+├── models/                     # 🗂️ Modelos de datos Pydantic
 │   ├── __init__.py
-│   ├── main_window.py         # Ventana principal
-│   ├── form_builder.py        # Auto-generador de formularios
-│   ├── preview_dialog.py      # Vista previa del documento
-│   └── ui/                    # Archivos .ui de Qt Designer
+│   ├── asegurado.py           # Modelo de cliente (validación NIT DIAN)
+│   ├── poliza.py              # Modelo de póliza (validación flexible)
+│   └── documento.py           # Modelo de documento completo + MontosCobro
 │
-├── validators/                 # Sistema de validación
+├── utils/                      # 🛠️ Utilidades
 │   ├── __init__.py
-│   ├── field_validators.py    # Validadores de campos individuales
-│   └── business_rules.py      # Reglas de negocio (póliza, montos)
-│
-├── models/                     # Modelos de datos Pydantic
-│   ├── __init__.py
-│   ├── asegurado.py
-│   ├── poliza.py
-│   └── documento.py
-│
-├── utils/                      # Utilidades
-│   ├── __init__.py
+│   ├── payee_manager.py       # 🏢 GESTOR DE ASEGURADORAS (CRUD + JSON)
 │   ├── logger.py              # Sistema de logging
-│   ├── versioning.py          # Control de versiones
+│   ├── validators.py          # Validadores colombianos (NIT, teléfono)
 │   └── config.py              # Configuración global
 │
-├── output/                     # PDFs generados
-│   ├── cartas/                # Cartas finales
-│   └── borradores/            # Borradores (watermark)
+├── templates/                  # 📋 Plantillas de documentos (JSON)
+│   ├── carta_cobro_primera.json
+│   └── template_schema.json
 │
-├── logs/                       # Registros de auditoría
-│   └── audit_trail.log
+├── output/                     # 📦 PDFs generados (carpeta por defecto)
+│   └── *.pdf                  # Cartas generadas
 │
-├── tests/                      # Tests unitarios
+├── logs/                       # 📊 Registros
+│   ├── payees.json            # Base de datos de aseguradoras
+│   └── *.log                  # Logs de auditoría
+│
+├── tests/                      # ✅ Tests unitarios
+│   ├── test_payee_manager.py  # 14 tests - gestión aseguradoras
 │   ├── test_validators.py
-│   ├── test_generators.py
-│   └── test_templates.py
+│   └── test_generators.py
 │
-├── main.py                     # Punto de entrada GUI
-├── cli.py                      # Interfaz CLI alternativa
-├── requirements.txt            # Dependencias Python
-└── README.md                   # Este archivo
+├── dist/                       # 🚀 Ejecutable compilado
+│   └── GeneradorCartasCobro.exe  # 45.48 MB - standalone
+│
+├── GeneradorCartasCobro_Portable/  # 📦 PAQUETE PORTABLE COMPLETO
+│   ├── GeneradorCartasCobro.exe    # Ejecutable
+│   ├── output/                     # Carpeta para PDFs
+│   ├── logs/                       # Carpeta para logs
+│   └── LEEME.txt                   # Instrucciones de uso
+│
+├── main.py                     # 🎯 Punto de entrada GUI
+├── cli.py                      # 💻 Interfaz CLI alternativa
+├── requirements.txt            # 📋 Dependencias Python
+└── README.md                   # 📖 Este archivo
 ```
 
 ## 🚀 Instalación y Uso
 
-### 1. Configurar Entorno Virtual
+### Opción 1: Ejecutable Standalone (RECOMENDADO) 🎯
+
+**Para usuarios finales - Sin necesidad de Python:**
+
+1. **Descargar** el paquete `GeneradorCartasCobro_Portable`
+2. **Extraer** en cualquier carpeta
+3. **Ejecutar** `GeneradorCartasCobro.exe`
+4. ¡Listo! La interfaz se abre automáticamente
+
+**Características del ejecutable:**
+- ✅ 45.48 MB - Todo incluido en un solo .exe
+- ✅ Sin instalación - Portable
+- ✅ Sin dependencias - Python embebido
+- ✅ Carpetas automáticas - output/ y logs/
+
+---
+
+### Opción 2: Desde Código Fuente (Desarrollo) 💻
+
+#### 1. Configurar Entorno Virtual
 
 ```powershell
 # Crear entorno virtual
-python -m venv venv
+python -m venv .venv
 
 # Activar entorno
-.\venv\Scripts\Activate.ps1
+.\.venv\Scripts\Activate.ps1
 
 # Instalar dependencias
 pip install -r requirements.txt
 ```
 
-### 2. Ejecutar la Aplicación
+#### 2. Ejecutar la Aplicación
 
-#### Modo GUI (interfaz gráfica)
+**Interfaz Gráfica (GUI Simple):**
 ```powershell
+python gui_simple.py
+# O
 python main.py
 ```
-*Nota: GUI en desarrollo. Actualmente disponible solo CLI.*
 
-#### Modo CLI Interactivo (recomendado)
+**Interfaz CLI Interactiva:**
 ```powershell
 python cli.py --interactive
 ```
-El modo interactivo te guía paso a paso para:
-- Ingresar datos del cliente y póliza
-- **Seleccionar o ingresar nueva aseguradora beneficiaria**
-- Definir montos de cobro
-- Generar PDF automáticamente
 
-#### Modo CLI desde JSON
-```powershell
-# Generar desde archivo JSON
-python cli.py --from-json ejemplo_carta.json
-
-# Mostrar estadísticas
-python cli.py --stats
-```
-
-### 3. Gestión de Aseguradoras Beneficiarias 🏢
-
-El sistema permite gestionar las aseguradoras que reciben el pago:
-
-#### Menú de Gestión Completo:
+**Gestión de Aseguradoras:**
 ```powershell
 python cli.py --manage-payees
 ```
-Este menú te permite:
-- ➕ **Agregar** nuevas aseguradoras al catálogo
-- ✏️ **Editar** nombre y NIT de aseguradoras existentes
-- 🗑️ **Eliminar** aseguradoras que ya no uses
-- 📋 **Ver detalles** con contador de uso
 
-#### En Modo Interactivo:
-Cuando llegues a la sección "ASEGURADORA BENEFICIARIA", verás:
+## 🎨 Interfaz Gráfica - Guía de Uso
+
+### Pestaña 1: 📝 Nueva Carta
+
+**Sub-pestaña "Emisión y Cliente":**
+- Ciudad de emisión (default: MEDELLÍN)
+- Fecha de emisión
+- Número de carta (formato: `15434 - 2025`)
+- Mes de cobro (selector)
+- Fecha límite de pago
+- Datos del asegurado:
+  - Nombre completo / Razón social
+  - NIT (validación con dígito verificador DIAN)
+  - Dirección
+  - Teléfono
+  - Ciudad
+
+**Sub-pestaña "Póliza y Montos":**
+- Número de póliza (flexible - cualquier formato)
+- Tipo de póliza:
+  - VIDA GRUPO
+  - SOAT
+  - COLECTIVA
+  - INDIVIDUAL
+  - Otros (se normalizan automáticamente)
+- Plan de póliza
+- Fechas de vigencia (inicio/fin con validación)
+- Montos:
+  - Prima
+  - IVA (impuesto)
+  - Otros rubros
+  - **Total calculado automáticamente** ✨
+
+**Sub-pestaña "Aseguradora y Firma":**
+- Selección de aseguradora beneficiaria:
+  - Combo con aseguradoras guardadas
+  - O escribir nueva (se guarda automáticamente)
+  - NIT de la aseguradora
+- Datos de firma:
+  - Nombre del firmante
+  - Cargo
+  - Iniciales
+- **📁 Carpeta de Salida:**
+  - Ver carpeta actual
+  - Botón "Cambiar Carpeta" para seleccionar destino
+  - Botón "Abrir Carpeta" para ver PDFs generados
+
+**Botones de Acción:**
+- **📝 Llenar Ejemplo** - Carga datos de prueba válidos
+- **🗑️ Limpiar Todo** - Resetea el formulario
+- **📄 Generar PDF** - Crea la carta y pregunta si abrir
+
+---
+
+### Pestaña 2: 🏢 Aseguradoras
+
+Gestión completa de aseguradoras beneficiarias:
+
+**Tabla con columnas:**
+- Nombre
+- NIT
+- Veces Usado (contador automático)
+
+**Botones:**
+- **➕ Agregar** - Nueva aseguradora
+- **✏️ Editar** - Modificar seleccionada
+- **🗑️ Eliminar** - Borrar (con confirmación)
+
+Las aseguradoras se guardan en `logs/payees.json` y aparecen automáticamente en el combo de la primera pestaña.
+
+---
+
+### 💡 Tips de Uso
+
+1. **Datos de ejemplo:** Usa el botón "Llenar Ejemplo" para ver un caso completo
+2. **Validación en tiempo real:** Los campos inválidos se marcan en rojo
+3. **NIT automático:** Al seleccionar aseguradora guardada, el NIT se llena solo
+4. **Total automático:** Al cambiar prima/IVA/otros, el total se recalcula
+5. **Carpeta personalizada:** Configura una vez y se recuerda para todos los PDFs
+6. **Abrir PDF:** Después de generar, elige si crear otra carta o abrir el PDF
+
+---
+
+## 🏢 Gestión de Aseguradoras Beneficiarias
+
+### Desde la GUI:
+
+**Pestaña "Aseguradoras":**
+- Tabla visual con todas las aseguradoras
+- Doble clic para editar
+- Botones grandes y claros
+- Contador de uso para ver las más utilizadas
+
+**Desde el formulario:**
+- El combo muestra aseguradoras ordenadas por uso
+- Escribir nombre nuevo lo guarda automáticamente al generar PDF
+- Incrementa contador cada vez que se usa
+
+### Desde CLI:
+
+```powershell
+python cli.py --manage-payees
 ```
-Aseguradoras guardadas:
-1. SEGUROS DE VIDA SURAMERICANA S.A. (NIT: 890903790-5) - Usada 15 veces
-2. SEGUROS BOLÍVAR S.A. (NIT: 860002503-4) - Usada 8 veces
-3. Ingresar nueva aseguradora
-4. Editar aseguradora existente
-5. Eliminar aseguradora
 
-Seleccione opción [1-5]: _
+Menú completo:
+```
+1. ➕ Agregar nueva aseguradora
+2. 📋 Listar todas
+3. ✏️ Editar aseguradora
+4. 🗑️ Eliminar aseguradora
+5. 🔍 Ver detalles
+0. Salir
 ```
 
-- **Selecciona un número**: Usa una aseguradora guardada
-- **Opción "Ingresar nueva"**: Agrega una nueva al catálogo
-- **Opción "Editar"**: Modifica nombre o NIT de una existente
-- **Opción "Eliminar"**: Elimina del catálogo
-- Las más usadas aparecen primero
+### Estructura JSON (`logs/payees.json`):
 
-#### En archivos JSON:
 ```json
 {
-  "payee_company_name": "SEGUROS DE VIDA SURAMERICANA S.A.",
-  "payee_company_nit": "890903790-5"
-}
-```
-
-Las aseguradoras se guardan automáticamente en `logs/payees.json` con contador de uso.
-
-Ver [DEMO_ASEGURADORAS.md](DEMO_ASEGURADORAS.md) para más detalles.
-
-### 4. Crear Nueva Plantilla
-
-```json
-{
-  "template_id": "carta_cobro_primera",
-  "version": "1.0",
-  "document_type": "Carta de Cobro - Primera Notificación",
-  "fields": [
+  "payees": [
     {
-      "id": "asegurado_nombre",
-      "label": "Nombre del Asegurado",
-      "type": "text",
-      "required": true,
-      "validation": "nombre_completo"
-    },
-    {
-      "id": "poliza_numero",
-      "label": "Número de Póliza",
-      "type": "text",
-      "required": true,
-      "validation": "poliza_format",
-      "pattern": "^POL-\\d{8}$"
-    },
-    {
-      "id": "deuda_total",
-      "label": "Deuda Total",
-      "type": "currency",
-      "required": true,
-      "validation": "positive_amount"
-    }
-  ],
-  "sections": [
-    {
-      "type": "header",
-      "content": "SEGUROS UNIÓN - Departamento de Cobros"
-    },
-    {
-      "type": "body",
-      "paragraphs": [
-        "Estimado/a {asegurado_nombre},",
-        "Por medio de la presente, le notificamos que su póliza número {poliza_numero} presenta un saldo pendiente de {deuda_total}.",
-        "Le rogamos regularice su situación en un plazo máximo de 15 días hábiles."
-      ]
-    },
-    {
-      "type": "signature",
-      "position": "Departamento de Cobros",
-      "company": "SEGUROS UNIÓN"
+      "name": "SEGUROS DE VIDA SURAMERICANA S.A.",
+      "nit": "890903790-5",
+      "usage_count": 15,
+      "created_at": "2026-01-15T10:30:00",
+      "last_used": "2026-01-21T14:25:00"
     }
   ]
 }
 ```
 
+## 📦 Construcción del Ejecutable
+
+### Script Automatizado (`build_exe.py`)
+
+```powershell
+# Construcción automática completa
+python build_exe.py
+```
+
+**El script hace todo automáticamente:**
+1. ✅ Verifica/Instala PyInstaller
+2. ✅ Limpia builds anteriores (dist/, build/, *.spec)
+3. ✅ Compila con configuración optimizada:
+   - `--onefile` - Un solo .exe
+   - `--windowed` - Sin ventana de consola
+   - `--clean` - Cache limpio
+   - Incluye todos los módulos necesarios
+   - Excluye librerías innecesarias (numpy, matplotlib)
+4. ✅ Crea paquete portable con:
+   - Ejecutable
+   - Carpetas output/ y logs/
+   - Archivo LEEME.txt con instrucciones
+5. ✅ Muestra tamaño final y ubicaciones
+
+**Resultado:**
+```
+dist/GeneradorCartasCobro.exe                    # 45.48 MB
+GeneradorCartasCobro_Portable/                    # Paquete completo
+├── GeneradorCartasCobro.exe
+├── output/                                       # Para PDFs
+├── logs/                                         # Para auditoría
+└── LEEME.txt                                     # Instrucciones
+```
+
+### Personalización (Opcional)
+
+Edita `build_exe.py` para cambiar:
+- Nombre del ejecutable (línea 75: `app_name`)
+- Icono personalizado (`--icon`, línea ~95)
+- Módulos adicionales (`--hidden-import`)
+- Carpetas extra (`--add-data`)
+
+### Distribución
+
+**Compartir solo la carpeta portable:**
+```
+GeneradorCartasCobro_Portable/  ← Esta carpeta completa
+```
+
+El usuario final solo necesita:
+1. Extraer carpeta
+2. Doble clic en .exe
+3. Usar la aplicación (sin instalación)
+
 ## 📋 Características Principales
 
-### ✅ Sistema de Plantillas
-- **JSON configurables**: Define estructura sin tocar código
-- **Recarga en caliente**: Cambios de plantilla sin reiniciar
-- **Validación de esquema**: Asegura integridad de plantillas
+### ✅ Interfaz Gráfica Moderna
+- **Dark Mode profesional**: Alto contraste (#1a1a1a fondo, #e0e0e0 texto)
+- **Botones con gradientes**: Azul (acciones), Verde (éxito), Rojo (eliminar)
+- **3 sub-tabs organizadas**: Evita scroll infinito en formularios largos
+- **Responsive**: Scroll areas donde se necesita
+- **Validación visual**: Campos inválidos se marcan claramente
 
-### ✅ Validación Inteligente
-- **Validación en tiempo real**: Feedback inmediato en formularios
-- **Reglas de negocio**: Validación de números de póliza, NIFs, montos
-- **Validación cruzada**: Comprobaciones entre múltiples campos
+### ✅ Gestión Completa de Aseguradoras
+- **CRUD inline**: Agregar, editar, eliminar desde la GUI
+- **Contador de uso**: Ordena aseguradoras por frecuencia
+- **Autocompletado**: Selecciona y el NIT se llena automáticamente
+- **Persistencia JSON**: Datos guardados en `logs/payees.json`
+- **14 tests unitarios**: Cobertura completa del PayeeManager
+
+### ✅ Validación Flexible y Robusta
+- **NIT colombiano**: Algoritmo DIAN para dígito verificador
+- **Números de póliza flexibles**: Acepta cualquier formato (no solo 7 dígitos)
+- **Tipos normalizados**: "VIDA GRUPO" → "POLIZA DE VIDA GRUPO" automáticamente
+- **Valores por defecto sensatos**: Plan "N/A" si no se especifica
+- **Fechas validadas**: Fin de vigencia > Inicio
+- **Cálculo automático**: Total = Prima + IVA + Otros
 
 ### ✅ Generación PDF Profesional
-- **Formato legal**: Márgenes, tipografía y espaciado según normativa
-- **Elementos estructurados**: Headers, cláusulas numeradas, firmas
-- **Marca de agua**: BORRADOR/CONFIDENCIAL según estado
-- **Metadatos**: Autor, fecha, versión embebidos
+- **Formato legal**: Márgenes, tipografía según normativa
+- **Formato colombiano**: Moneda 1.372.412,00 (punto miles, coma decimales)
+- **Headers y footers**: Logotipos, datos de empresa
+- **Tablas estructuradas**: Detalles de póliza y montos
+- **Metadatos embebidos**: Autor, fecha, título del PDF
+
+### ✅ Experiencia de Usuario
+- **Botón "Llenar Ejemplo"**: Datos válidos para prueba rápida
+- **Selector de carpeta**: Configura una vez, usa siempre
+- **Botón "Abrir Carpeta"**: Acceso directo a PDFs generados
+- **Pregunta al finalizar**: "¿Crear otra carta o abrir PDF?"
+- **Mensajes claros**: Confirmaciones y errores descriptivos
+
+### ✅ Ejecutable Standalone
+- **45.48 MB**: Todo incluido en un .exe
+- **Sin instalación**: Portable - copia y usa
+- **Sin dependencias**: Python embebido
+- **Paquete completo**: Con carpetas output/, logs/, instrucciones
 
 ### ✅ Trazabilidad y Auditoría
-- **Registro completo**: Timestamp, usuario, plantilla, versión
-- **Control de versiones**: Histórico de documentos generados
-- **Logs detallados**: Acciones, errores, cambios de estado
+- **Registro completo**: Timestamp, acciones, errores
+- **Formato estructurado**: JSON y texto plano
+- **Ubicación fija**: `logs/` para análisis posterior
 
-### ✅ Interfaz Profesional
-- **Diseño claro**: Alto contraste, fuentes legibles
-- **Navegación por teclado**: Accesibilidad completa
-- **Vista previa**: Revisar documento antes de generar
-- **Feedback visual**: Indicadores de progreso y validación
-
-## 🔐 Cumplimiento Legal
+## 🔐 Cumplimiento Legal y Formato Colombiano
 
 ### Elementos Obligatorios
 Todas las cartas incluyen:
-- **Identificación de la compañía**: Logo, CIF, domicilio social
-- **Fecha de emisión**: Formato legal dd/mm/yyyy
-- **Identificación del destinatario**: Nombre completo, DNI/NIF
-- **Número de referencia**: Código único de documento
-- **Cláusulas numeradas**: Términos y condiciones claros
-- **Plazos**: Fechas límite explícitas
-- **Pie legal**: Protección de datos (LOPD/RGPD)
+- **Identificación de la compañía**: Razón social, NIT
+- **Fecha de emisión**: Formato español largo (21 de enero de 2026)
+- **Identificación del destinatario**: Nombre completo, NIT, dirección
+- **Número de referencia**: Formato único de documento
+- **Detalles de póliza**: Número, tipo, vigencia, plan
+- **Montos desglosados**: Prima, IVA, otros rubros, total
+- **Plazos**: Mes de cobro, fecha límite de pago
+- **Firma**: Nombre, cargo, iniciales del firmante
+
+### Formato Colombiano
+- **Moneda COP**: 1.372.412,00 (punto miles, coma decimales)
+- **NIT validado**: Algoritmo DIAN para dígito verificador
+- **Fechas españolas**: "21 de enero de 2026"
+- **Teléfonos**: 10 dígitos (301XXXXXXX)
+
+### Validación NIT (Algoritmo DIAN)
+```python
+# Ejemplo: 900123456-6
+# Dígito verificador calculado automáticamente
+def calcular_digito_verificador(nit: str) -> str:
+    # Algoritmo oficial DIAN Colombia
+    pesos = [71, 67, 59, 53, 47, 43, 41, 37, 29, 23, 19, 17, 13, 7, 3]
+    # ... resto del algoritmo
+```
 
 ### Registro de Auditoría
 Cada documento generado registra:
-```python
+```json
 {
-    "timestamp": "2026-01-20T14:30:00Z",
-    "user": "usuario.cobros",
-    "template": "carta_cobro_primera",
-    "template_version": "1.0",
-    "document_id": "CART-2026-0001",
-    "recipient_nif": "12345678Z",
-    "poliza": "POL-20240001",
-    "status": "FINAL",
-    "output_path": "./output/cartas/CART-2026-0001.pdf"
+    "timestamp": "2026-01-21T14:30:00",
+    "documento_id": "carta_cobro_15434-2025_9001234566.pdf",
+    "asegurado_nit": "900123456-6",
+    "poliza": "VG-2026-0001",
+    "montos": {
+        "prima": 1500000.00,
+        "impuesto": 285000.00,
+        "otros_rubros": 50000.00,
+        "total": 1835000.00
+    },
+    "aseguradora": "SEGUROS DE VIDA SURAMERICANA S.A.",
+    "output_path": "output/carta_cobro_15434-2025_9001234566.pdf"
 }
 ```
 
@@ -312,13 +471,37 @@ Cada documento generado registra:
 
 ```powershell
 # Ejecutar todos los tests
-pytest tests/
+pytest tests/ -v
+
+# Tests de gestión de aseguradoras (14 tests)
+pytest tests/test_payee_manager.py -v
 
 # Tests con cobertura
-pytest --cov=generators --cov=validators tests/
+pytest --cov=utils --cov=models --cov=generators tests/
 
 # Test específico
-pytest tests/test_generators.py::test_carta_cobro_primera
+pytest tests/test_payee_manager.py::test_add_payee -v
+```
+
+**Cobertura actual:**
+- ✅ PayeeManager: 14 tests (CRUD completo, validaciones, persistencia)
+- ✅ Validadores: NIT DIAN, teléfonos, formatos
+- ✅ Generadores: Creación de PDFs, formato colombiano
+
+**Para agregar tests nuevos:**
+```python
+# tests/test_nuevo_modulo.py
+import pytest
+from models.documento import Documento
+
+def test_documento_con_datos_minimos():
+    """Test que el documento acepta datos mínimos válidos."""
+    doc = Documento(
+        numero_carta="15434 - 2025",
+        mes_cobro="Enero",
+        # ... resto de campos
+    )
+    assert doc.numero_carta == "15434 - 2025"
 ```
 
 ## 📦 Empaquetado
@@ -330,28 +513,189 @@ pyinstaller --onefile --windowed --name "GeneradorCartas" main.py
 # El ejecutable estará en dist/GeneradorCartas.exe
 ```
 
-## 🤝 Contribución
+## 🤝 Contribución y Desarrollo
 
 ### Workflow de Desarrollo
-1. **Definir nueva plantilla** en `templates/` (JSON)
-2. **Crear generador** en `generators/` si es necesario
-3. **Actualizar validadores** en `validators/` para nuevos campos
-4. **Probar** con `pytest`
-5. **Documentar** cambios en este README
+1. **Clonar repositorio**
+2. **Crear rama** para nueva funcionalidad
+3. **Implementar cambios** con tests
+4. **Ejecutar tests**: `pytest tests/ -v`
+5. **Actualizar README** si hay cambios de API
+6. **Commit y push**
+
+### Estructura de Commits
+```
+feat: Agregar validación de vigencia de póliza
+fix: Corregir cálculo de dígito verificador NIT
+docs: Actualizar README con nueva funcionalidad
+test: Agregar tests para PayeeManager
+refactor: Simplificar generador de PDFs
+```
 
 ### Convenciones de Código
 - **PEP 8** para estilo Python
-- **Type hints** en todas las funciones
-- **Docstrings** en formato Google
-- **Nombres en español** para variables de dominio (asegurado, poliza)
-- **Nombres en inglés** para conceptos técnicos (generator, validator)
+- **Type hints** en todas las funciones públicas
+- **Docstrings** en formato Google:
+  ```python
+  def agregar_aseguradora(nombre: str, nit: str) -> dict:
+      """Agrega una nueva aseguradora al catálogo.
+      
+      Args:
+          nombre: Razón social de la aseguradora
+          nit: NIT con dígito verificador (formato: 890903790-5)
+      
+      Returns:
+          Diccionario con los datos de la aseguradora creada
+      
+      Raises:
+          ValueError: Si la aseguradora ya existe o el NIT es inválido
+      """
+  ```
+- **Nombres en español** para dominio de negocio (asegurado, poliza, montos)
+- **Nombres en inglés** para conceptos técnicos (generator, validator, manager)
+- **Logging estructurado**: `logger.info(f"Acción realizada: {detalle}")`
 
-## 📞 Soporte
+### Agregar Nueva Funcionalidad
+
+**Ejemplo: Agregar nuevo tipo de documento**
+
+1. **Crear modelo** en `models/`:
+```python
+# models/acta_entrega.py
+class ActaEntrega(BaseModel):
+    numero: str
+    fecha: date
+    # ... campos específicos
+```
+
+2. **Crear generador** en `generators/`:
+```python
+# generators/acta_entrega_generator.py
+class ActaEntregaGenerator(BaseGenerator):
+    def generate(self, data: dict, output_filename: str) -> Path:
+        # ... lógica de generación
+```
+
+3. **Agregar a GUI** en `gui_simple.py`:
+```python
+# Agregar nuevo tab o ampliar existente
+self.tipo_documento = QComboBox()
+self.tipo_documento.addItems(["Carta Cobro", "Acta Entrega"])
+```
+
+4. **Escribir tests**:
+```python
+# tests/test_acta_entrega.py
+def test_generar_acta_entrega():
+    acta = ActaEntrega(numero="AE-001", fecha=date.today())
+    generator = ActaEntregaGenerator()
+    pdf_path = generator.generate(acta.to_pdf_data(), "acta_001.pdf")
+    assert pdf_path.exists()
+```
+
+### Rebuild del Ejecutable
+
+Después de cualquier cambio en el código:
+```powershell
+python build_exe.py
+```
+
+Esto regenera automáticamente:
+- `dist/GeneradorCartasCobro.exe`
+- `GeneradorCartasCobro_Portable/` completo
+
+## 📞 Soporte y Contacto
 
 **Proyecto**: Automatizaciones - SEGUROS UNIÓN  
+**Desarrollador**: DANIEL GARCIA ARAQUE  
+**Cargo**: Desarrollador  
 **Departamento**: Tecnología  
-**Última actualización**: Enero 2026
+
+**Versión**: 1.0.0  
+**Fecha**: Enero 2026  
+**Python**: 3.13.2  
+**PyQt6**: 6.6+  
+
+### Roadmap Futuro
+- [ ] Envío automático por correo electrónico
+- [ ] Firma digital integrada
+- [ ] Plantillas personalizables desde GUI
+- [ ] Generación masiva (batch) desde Excel/CSV
+- [ ] Dashboard de estadísticas de cobros
+- [ ] Integración con bases de datos SQL
+- [ ] API REST para integración con otros sistemas
+- [ ] Modo offline con sincronización posterior
+
+### Changelog
+
+**v1.0.0** (Enero 2026)
+- ✅ GUI completa con Dark Mode
+- ✅ Gestión CRUD de aseguradoras
+- ✅ Validación flexible de datos
+- ✅ Formato colombiano (NIT DIAN, moneda COP)
+- ✅ Selector de carpeta de salida
+- ✅ Ejecutable standalone 45.48 MB
+- ✅ Script automatizado de build
+- ✅ 14 tests unitarios para PayeeManager
+- ✅ Documentación completa
 
 ---
 
-**Nota**: Este sistema es de uso interno exclusivo de SEGUROS UNIÓN. Los datos procesados están protegidos según LOPD/RGPD.
+## 📸 Capturas de Pantalla
+
+### Interfaz Principal - Dark Mode
+```
+┌────────────────────────────────────────────────────────────┐
+│  [📝 Nueva Carta]  [🏢 Aseguradoras]                       │
+│                                                             │
+│  ┌─ 1️⃣ Emisión y Cliente ─────────────────────────────┐   │
+│  │                                                       │   │
+│  │  Ciudad de Emisión: [MEDELLIN        ]              │   │
+│  │  Fecha de Emisión:  [21/01/2026    ▼]              │   │
+│  │  Número de Carta:   [15434 - 2025   ]              │   │
+│  │  Mes de Cobro:      [Enero         ▼]              │   │
+│  │  Fecha Límite Pago: [20/02/2026    ▼]              │   │
+│  │                                                       │   │
+│  │  👤 Datos del Asegurado:                            │   │
+│  │  Nombre Completo:   [JUAN CARLOS RODRIGUEZ...     ]│   │
+│  │  NIT:               [900123456-6    ] ✓ Válido     │   │
+│  │  Dirección:         [Carrera 45 # 76-32...       ]│   │
+│  │  Teléfono:          [3001234567      ]             │   │
+│  │  Ciudad:            [MEDELLIN        ]             │   │
+│  └───────────────────────────────────────────────────┘   │
+│                                                             │
+│  [📝 Llenar Ejemplo] [🗑️ Limpiar] [📄 Generar PDF]       │
+└────────────────────────────────────────────────────────────┘
+```
+
+### Pestaña Gestión de Aseguradoras
+```
+┌────────────────────────────────────────────────────────────┐
+│  🏢 Gestión de Aseguradoras                                │
+├────────────────────────────────────────────────────────────┤
+│  [➕ Agregar] [✏️ Editar] [🗑️ Eliminar]                   │
+│                                                             │
+│  ┌─────────────────────────────────────────────────────┐  │
+│  │ Nombre                     │ NIT           │ Usado   │  │
+│  ├────────────────────────────┼───────────────┼────────┤  │
+│  │ SEGUROS SURAMERICANA S.A. │ 890903790-5   │ 15     │  │
+│  │ SEGUROS BOLÍVAR S.A.      │ 860002503-4   │ 8      │  │
+│  │ SEGUROS MUNDIAL S.A.      │ 860014968-9   │ 3      │  │
+│  └─────────────────────────────────────────────────────┘  │
+└────────────────────────────────────────────────────────────┘
+```
+
+### Selector de Carpeta de Salida
+```
+┌────────────────────────────────────────────────────────────┐
+│  📁 Carpeta de Salida                                      │
+│                                                             │
+│  📂 C:\Users\...\output                                    │
+│                                                             │
+│  [📁 Cambiar Carpeta]  [🗂️ Abrir Carpeta]                │
+└────────────────────────────────────────────────────────────┘
+```
+
+---
+
+**⚠️ Nota de Privacidad**: Este sistema es de uso interno exclusivo de SEGUROS UNIÓN. Los datos procesados contienen información sensible y están protegidos según normativas de protección de datos colombianas y GDPR.
