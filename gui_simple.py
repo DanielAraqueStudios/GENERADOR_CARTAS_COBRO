@@ -655,13 +655,13 @@ class GeneradorCartasGUI(QMainWindow):
         form_firma = QFormLayout()
         form_firma.setSpacing(10)
         
-        self.nombre_firmante = QLineEdit("DANIEL ANTONIO VELEZ PELAEZ")
+        self.nombre_firmante = QLineEdit("DANIEL GARCIA ARAQUE")
         self.nombre_firmante.setMinimumHeight(35)
         
-        self.cargo_firmante = QLineEdit("GERENTE")
+        self.cargo_firmante = QLineEdit("DESARROLLADOR")
         self.cargo_firmante.setMinimumHeight(35)
         
-        self.iniciales = QLineEdit("DAVP")
+        self.iniciales = QLineEdit("DGA")
         self.iniciales.setMinimumHeight(35)
         self.iniciales.setPlaceholderText("Ej: DAVP")
         

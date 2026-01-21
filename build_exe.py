@@ -189,7 +189,7 @@ CARACTERÍSTICAS:
 SOPORTE TÉCNICO:
 ---------------
 Para reportar errores o solicitar ayuda, contactar a:
-DANIEL ANTONIO VELEZ PELAEZ
+DANIEL GARCIA ARAQUE
 
 Versión: 1.0.0
 Fecha: Enero 2026
