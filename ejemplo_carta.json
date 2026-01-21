@@ -1,0 +1,33 @@
+{
+  "ciudad_emision": "Medellín",
+  "fecha_emision": "2025-12-18",
+  "numero_carta": "15434 - 2025",
+  "mes_cobro": "Octubre",
+  "fecha_limite_pago": "2025-12-23",
+  "asegurado": {
+    "razon_social": "COOPERATIVA DEL COMERCIO EXTERIOR COLOMBIANO",
+    "nit": "860023108-9",
+    "direccion": "CR 13 28 01 P 5",
+    "telefono": "6067676",
+    "ciudad": "Bogotá D.C."
+  },
+  "poliza": {
+    "numero": "3144016",
+    "tipo": "POLIZA DE VIDA GRUPO",
+    "plan_poliza": "06  3144016",
+    "documento_referencia": "21155722",
+    "cuota_numero": 5,
+    "vigencia_inicio": "2025-09-30",
+    "vigencia_fin": "2025-10-30"
+  },
+  "montos": {
+    "prima": 1372412.00,
+    "otros_rubros": 0.00,
+    "impuesto": 0.00,
+    "valor_externo": 0.00
+  },
+  "firmante_nombre": "YULIANA ANDREA VELASQUEZ VALENCI",
+  "firmante_cargo": "Ejecutivo",
+  "firmante_iniciales": "YAVV",
+  "es_borrador": false
+}

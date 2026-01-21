@@ -1,0 +1,338 @@
+{
+  "template_id": "carta_cobro_seguros_union",
+  "version": "1.0",
+  "document_type": "Carta de Cobro - SEGUROS UNIÓN",
+  "description": "Carta de cobro mensual para pólizas de vida grupo",
+  
+  "fields": [
+    {
+      "id": "ciudad_emision",
+      "label": "Ciudad de Emisión",
+      "type": "text",
+      "required": true,
+      "default": "Medellín",
+      "validation": "text_not_empty",
+      "help_text": "Ciudad donde se emite la carta"
+    },
+    {
+      "id": "fecha_emision",
+      "label": "Fecha de Emisión",
+      "type": "date",
+      "required": true,
+      "format": "dd de MMMM de yyyy",
+      "validation": "valid_date",
+      "help_text": "Fecha en que se genera el documento"
+    },
+    {
+      "id": "numero_carta",
+      "label": "Número de Carta",
+      "type": "text",
+      "required": true,
+      "pattern": "^\\d+ - \\d{4}$",
+      "auto_generate": true,
+      "help_text": "Se genera automáticamente: {consecutivo} - {año}"
+    },
+    {
+      "id": "cliente_razon_social",
+      "label": "Razón Social del Cliente",
+      "type": "text",
+      "required": true,
+      "max_length": 100,
+      "validation": "text_not_empty",
+      "transform": "uppercase"
+    },
+    {
+      "id": "cliente_nit",
+      "label": "NIT del Cliente",
+      "type": "text",
+      "required": true,
+      "pattern": "^\\d{9}-\\d$",
+      "validation": "nit_colombiano",
+      "help_text": "Formato: 123456789-0 (con dígito de verificación)"
+    },
+    {
+      "id": "cliente_direccion",
+      "label": "Dirección del Cliente",
+      "type": "text",
+      "required": true,
+      "max_length": 100,
+      "help_text": "Dirección completa del cliente"
+    },
+    {
+      "id": "cliente_telefono",
+      "label": "Teléfono del Cliente",
+      "type": "text",
+      "required": true,
+      "pattern": "^\\d{7,10}$",
+      "validation": "telefono_colombiano",
+      "help_text": "7-10 dígitos (fijos o móviles)"
+    },
+    {
+      "id": "cliente_ciudad",
+      "label": "Ciudad del Cliente",
+      "type": "text",
+      "required": true,
+      "validation": "text_not_empty"
+    },
+    {
+      "id": "poliza_numero",
+      "label": "Número de Póliza",
+      "type": "text",
+      "required": true,
+      "pattern": "^\\d{7}$",
+      "validation": "numero_poliza",
+      "help_text": "7 dígitos"
+    },
+    {
+      "id": "poliza_tipo",
+      "label": "Tipo de Póliza",
+      "type": "select",
+      "required": true,
+      "options": [
+        "POLIZA DE VIDA GRUPO",
+        "POLIZA COLECTIVA",
+        "POLIZA INDIVIDUAL"
+      ],
+      "default": "POLIZA DE VIDA GRUPO"
+    },
+    {
+      "id": "mes_cobro",
+      "label": "Mes de Cobro",
+      "type": "select",
+      "required": true,
+      "options": [
+        "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+        "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+      ],
+      "help_text": "Mes al que corresponde el cobro"
+    },
+    {
+      "id": "plan_poliza",
+      "label": "Plan Póliza",
+      "type": "text",
+      "required": true,
+      "pattern": "^\\d{2}  \\d{7}$",
+      "help_text": "Formato: 06  3144016 (dos espacios entre código y número)"
+    },
+    {
+      "id": "documento_referencia",
+      "label": "Documento de Referencia",
+      "type": "text",
+      "required": true,
+      "pattern": "^\\d{8}$",
+      "help_text": "8 dígitos de referencia interna"
+    },
+    {
+      "id": "prima",
+      "label": "Prima (COP)",
+      "type": "currency",
+      "required": true,
+      "min": 0,
+      "format": "colombian",
+      "validation": "positive_amount",
+      "storage": {
+        "raw": "amounts_raw.prima",
+        "normalized": "amounts_normalized.prima"
+      }
+    },
+    {
+      "id": "otros_rubros",
+      "label": "Otros Rubros (COP)",
+      "type": "currency",
+      "required": false,
+      "default": 0,
+      "min": 0,
+      "format": "colombian",
+      "help_text": "Gastos de expedición y/o otros conceptos"
+    },
+    {
+      "id": "impuesto",
+      "label": "Impuesto (COP)",
+      "type": "currency",
+      "required": false,
+      "default": 0,
+      "min": 0,
+      "format": "colombian"
+    },
+    {
+      "id": "valor_externo",
+      "label": "Valores Externos (COP)",
+      "type": "currency",
+      "required": false,
+      "default": 0,
+      "min": 0,
+      "format": "colombian",
+      "help_text": "Costos bancarios y/o gastos de operación"
+    },
+    {
+      "id": "cuota_numero",
+      "label": "Número de Cuota",
+      "type": "integer",
+      "required": true,
+      "min": 1,
+      "max": 999,
+      "help_text": "Número de la cuota mensual"
+    },
+    {
+      "id": "vigencia_inicio",
+      "label": "Inicio de Vigencia",
+      "type": "date",
+      "required": true,
+      "format": "dd-MMM-yyyy",
+      "validation": "valid_date",
+      "help_text": "Fecha de inicio del período de cobertura"
+    },
+    {
+      "id": "vigencia_fin",
+      "label": "Fin de Vigencia",
+      "type": "date",
+      "required": true,
+      "format": "dd-MMM-yyyy",
+      "validation": "valid_date",
+      "help_text": "Fecha de fin del período de cobertura"
+    },
+    {
+      "id": "fecha_limite_pago",
+      "label": "Fecha Límite de Pago",
+      "type": "date",
+      "required": true,
+      "format": "dd-mes-yyyy",
+      "validation": "valid_date",
+      "help_text": "Fecha máxima para realizar el pago"
+    },
+    {
+      "id": "firmante_nombre",
+      "label": "Nombre del Firmante",
+      "type": "text",
+      "required": true,
+      "transform": "uppercase",
+      "validation": "text_not_empty",
+      "max_length": 60
+    },
+    {
+      "id": "firmante_cargo",
+      "label": "Cargo del Firmante",
+      "type": "text",
+      "required": true,
+      "validation": "text_not_empty",
+      "max_length": 50
+    },
+    {
+      "id": "firmante_iniciales",
+      "label": "Iniciales del Firmante",
+      "type": "text",
+      "required": false,
+      "max_length": 10,
+      "help_text": "Iniciales opcionales (ej: YAVV)"
+    }
+  ],
+  
+  "static_fields": [
+    {
+      "id": "payee_company_name",
+      "value": "SEGUROS DE VIDA SURAMERICANA S.A.",
+      "description": "Aseguradora real que recibe el pago"
+    },
+    {
+      "id": "payee_company_nit",
+      "value": "890903790-5"
+    },
+    {
+      "id": "sender_company_name",
+      "value": "SEGUROS UNIÓN",
+      "description": "Intermediario que emite la carta de cobro"
+    },
+    {
+      "id": "sender_email",
+      "value": "gerencia@segurosunion.com"
+    },
+    {
+      "id": "sender_address",
+      "value": "Carrera 77 A # 49 - 37 .Sector Estadio - Medellin"
+    }
+  ],
+  
+  "computed_fields": [
+    {
+      "id": "total",
+      "formula": "prima + otros_rubros + impuesto + valor_externo",
+      "type": "currency",
+      "format": "colombian",
+      "description": "Suma automática de todos los rubros"
+    },
+    {
+      "id": "poliza_ramo",
+      "formula": "extract_ramo_from_tipo(poliza_tipo)",
+      "type": "text",
+      "description": "Extrae el tipo de ramo del nombre de póliza"
+    },
+    {
+      "id": "plan_code_inferred",
+      "formula": "extract_plan_code(plan_poliza)",
+      "type": "text",
+      "description": "Código de plan extraído de plan_poliza_text"
+    },
+    {
+      "id": "document_number_normalized",
+      "formula": "normalize_document_number(numero_carta)",
+      "type": "text",
+      "description": "Número de carta sin espacios alrededor del guión"
+    }
+  ],
+  
+  "sections": [
+    {
+      "type": "header",
+      "content": "{ciudad_emision}, {fecha_emision}\n\nCARTA COBRO N° {numero_carta}\n\nSeñores\n{cliente_razon_social}\tNIT {cliente_nit}\n{cliente_direccion}\tTeléfono {cliente_telefono}\n{cliente_ciudad}"
+    },
+    {
+      "type": "subject",
+      "content": "ASUNTO: {poliza_tipo} N° {poliza_numero}\n\t{cliente_razon_social}"
+    },
+    {
+      "type": "salutation",
+      "content": "Cordial saludo"
+    },
+    {
+      "type": "billing_context",
+      "content": "Cobro mensual correspondiente al mes de {mes_cobro}"
+    },
+    {
+      "type": "table",
+      "columns": [
+        "Ramo", "Plan Póliza", "Doc.", "Prima", 
+        "Otros Rubros", "Impuesto", "Val. Exter.", "Total"
+      ],
+      "data_source": "billing_table"
+    },
+    {
+      "type": "installment_detail",
+      "content": "*CUOTA MENSUAL N° {cuota_numero} VIGENCIA {vigencia_inicio} - {vigencia_fin}\nVALOR A PAGAR A FAVOR DE {payee_company_name}\n\n{total}"
+    },
+    {
+      "type": "definitions",
+      "content": "*Otros Rubros: Se refiere a gastos de expedición y/o otros conceptos.\n*Val. Exter. (Valores externos): Se refiere a costos bancarios y/o gastos de operación."
+    },
+    {
+      "type": "payment_instructions",
+      "content": "PUEDE REALIZAR SUS PAGOS POR PSE EN LA PAGINA WEB WWW.SURA.COM - PAGO EXPRESS CON EL RECIBO DE PAGO EN LOS BANCOS AUTORIZADOS POR LA COMPAÑÍA\n\nNIT {payee_company_nit}\nRECUERDE ENVIARNOS EL SOPORTE DE PAGO…"
+    },
+    {
+      "type": "legal_notice",
+      "content": "Nota: Las primas de seguros aquí relacionadas deben ser declaradas a nombre de la aseguradora que los expide. ART 1068 C. De C. La mora en el pago de la prima de la póliza o de los certificados o anexos que se expidan con fundamento en ella, producirá la terminación automática del contrato.\nF. Límite de pago: {fecha_limite_pago}"
+    },
+    {
+      "type": "closing",
+      "content": "REITERAMOS NUESTRA DISPOSICIÓN DE SERVICIO.\n\nAtentamente,"
+    },
+    {
+      "type": "signature",
+      "signer_name": "{firmante_nombre}",
+      "signer_role": "{firmante_cargo} {firmante_iniciales}"
+    },
+    {
+      "type": "footer",
+      "content": "{sender_address} E-mail: {sender_email}"
+    }
+  ]
+}
