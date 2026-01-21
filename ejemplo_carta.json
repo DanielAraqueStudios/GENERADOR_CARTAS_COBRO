@@ -26,6 +26,8 @@
     "impuesto": 0.00,
     "valor_externo": 0.00
   },
+  "payee_company_name": "SEGUROS DE VIDA SURAMERICANA S.A.",
+  "payee_company_nit": "890903790-5",
   "firmante_nombre": "YULIANA ANDREA VELASQUEZ VALENCI",
   "firmante_cargo": "Ejecutivo",
   "firmante_iniciales": "YAVV",

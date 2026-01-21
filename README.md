@@ -1,38 +1,48 @@
 # 📄 Generador de Cartas de Cobro - SEGUROS UNIÓN
 
-Sistema profesional de generación automática de cartas de cobro y documentos legales en formato PDF, diseñado para SEGUROS UNIÓN con interfaz gráfica moderna y sistema de plantillas flexible.
+Sistema profesional de generación automática de cartas de cobro en formato PDF, diseñado para SEGUROS UNIÓN con interfaz gráfica moderna en dark mode, gestión completa de aseguradoras y generación de ejecutables standalone.
 
 ## 🎯 Objetivo del Proyecto
 
 Automatizar la generación de cartas de cobro personalizadas con:
-- **Interfaz gráfica profesional** (PyQt6) para captura de datos
-- **Motor de plantillas** configurable para diferentes tipos de cartas
-- **Validación en tiempo real** de datos del asegurado y póliza
-- **Generación PDF** con formato legal profesional (ReportLab)
-- **Trazabilidad completa** con registro de auditoría y versionado
+- **Interfaz gráfica moderna** (PyQt6 Dark Mode) para captura de datos
+- **Gestión de aseguradoras** con sistema CRUD completo
+- **Validación flexible** de datos del asegurado y póliza (adaptado a datos reales)
+- **Generación PDF profesional** con formato legal colombiano (ReportLab)
+- **Selección de carpeta de salida** para organizar archivos
+- **Ejecutable standalone** (.exe) listo para distribución
+- **Trazabilidad completa** con registro de auditoría
 
 ## 🏗️ Arquitectura del Sistema
 
 ```
-┌─────────────────┐
-│   GUI (PyQt6)   │  ← Formularios auto-generados desde plantillas
-└────────┬────────┘
-         │
-┌────────▼────────┐
-│   Validadores   │  ← Validación de datos (correo, teléfono, NIF, póliza)
-└────────┬────────┘
-         │
-┌────────▼────────┐
-│  Motor Plantilla│  ← Carga plantillas JSON y mapea datos
-└────────┬────────┘
-         │
-┌────────▼────────┐
-│  Generador PDF  │  ← ReportLab: formato legal, tablas, firmas
-└────────┬────────┘
-         │
-┌────────▼────────┐
-│  Audit Trail    │  ← Logs, versiones, metadatos
-└─────────────────┘
+┌──────────────────────┐
+│   GUI Simple (PyQt6) │  ← Interfaz Dark Mode en un solo archivo
+│   - Tabs organizadas │  ← 3 sub-tabs para formulario extenso
+│   - CRUD Aseguradoras│  ← Gestión completa inline
+│   - Selector carpeta │  ← Configurar destino de PDFs
+└──────────┬───────────┘
+           │
+┌──────────▼───────────┐
+│  Modelos Pydantic    │  ← Validación flexible de datos
+│  - Asegurado         │  ← NIT, dirección, teléfono
+│  - Poliza            │  ← Número flexible, tipos normalizados
+│  - Documento         │  ← Carta completa con metadatos
+│  - MontosCobro       │  ← Prima, IVA, otros, total calculado
+└──────────┬───────────┘
+           │
+┌──────────▼───────────┐
+│  Generadores PDF     │  ← ReportLab con formato legal
+│  - CartaCobro        │  ← Headers, tablas, firmas
+│  - BaseGenerator     │  ← Clase abstracta reutilizable
+└──────────┬───────────┘
+           │
+┌──────────▼───────────┐
+│  Utils / Managers    │  ← Servicios auxiliares
+│  - PayeeManager      │  ← CRUD aseguradoras (JSON)
+│  - Logger            │  ← Auditoría completa
+│  - Config            │  ← Configuración global
+└──────────────────────┘
 ```
 
 ## 🛠️ Stack Tecnológico
@@ -128,15 +138,77 @@ pip install -r requirements.txt
 
 ### 2. Ejecutar la Aplicación
 
+#### Modo GUI (interfaz gráfica)
 ```powershell
-# Modo GUI (interfaz gráfica)
 python main.py
+```
+*Nota: GUI en desarrollo. Actualmente disponible solo CLI.*
 
-# Modo CLI (línea de comandos)
-python cli.py --template carta_cobro_primera --output ./output/cartas
+#### Modo CLI Interactivo (recomendado)
+```powershell
+python cli.py --interactive
+```
+El modo interactivo te guía paso a paso para:
+- Ingresar datos del cliente y póliza
+- **Seleccionar o ingresar nueva aseguradora beneficiaria**
+- Definir montos de cobro
+- Generar PDF automáticamente
+
+#### Modo CLI desde JSON
+```powershell
+# Generar desde archivo JSON
+python cli.py --from-json ejemplo_carta.json
+
+# Mostrar estadísticas
+python cli.py --stats
 ```
 
-### 3. Crear Nueva Plantilla
+### 3. Gestión de Aseguradoras Beneficiarias 🏢
+
+El sistema permite gestionar las aseguradoras que reciben el pago:
+
+#### Menú de Gestión Completo:
+```powershell
+python cli.py --manage-payees
+```
+Este menú te permite:
+- ➕ **Agregar** nuevas aseguradoras al catálogo
+- ✏️ **Editar** nombre y NIT de aseguradoras existentes
+- 🗑️ **Eliminar** aseguradoras que ya no uses
+- 📋 **Ver detalles** con contador de uso
+
+#### En Modo Interactivo:
+Cuando llegues a la sección "ASEGURADORA BENEFICIARIA", verás:
+```
+Aseguradoras guardadas:
+1. SEGUROS DE VIDA SURAMERICANA S.A. (NIT: 890903790-5) - Usada 15 veces
+2. SEGUROS BOLÍVAR S.A. (NIT: 860002503-4) - Usada 8 veces
+3. Ingresar nueva aseguradora
+4. Editar aseguradora existente
+5. Eliminar aseguradora
+
+Seleccione opción [1-5]: _
+```
+
+- **Selecciona un número**: Usa una aseguradora guardada
+- **Opción "Ingresar nueva"**: Agrega una nueva al catálogo
+- **Opción "Editar"**: Modifica nombre o NIT de una existente
+- **Opción "Eliminar"**: Elimina del catálogo
+- Las más usadas aparecen primero
+
+#### En archivos JSON:
+```json
+{
+  "payee_company_name": "SEGUROS DE VIDA SURAMERICANA S.A.",
+  "payee_company_nit": "890903790-5"
+}
+```
+
+Las aseguradoras se guardan automáticamente en `logs/payees.json` con contador de uso.
+
+Ver [DEMO_ASEGURADORAS.md](DEMO_ASEGURADORAS.md) para más detalles.
+
+### 4. Crear Nueva Plantilla
 
 ```json
 {

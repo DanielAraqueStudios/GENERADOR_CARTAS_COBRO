@@ -8,7 +8,7 @@ from datetime import date
 
 def test_validate_nit_valid():
     """Test de NIT válido."""
-    is_valid, error = FieldValidator.validate_nit_colombiano("860023108-6")
+    is_valid, error = FieldValidator.validate_nit_colombiano("860023108-9")
     assert is_valid
     assert error is None
 

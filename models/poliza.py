@@ -13,25 +13,24 @@ class Poliza(BaseModel):
     
     numero: str = Field(
         ..., 
-        pattern=r"^\d{7}$",
-        description="Número de póliza (7 dígitos)"
+        min_length=1,
+        max_length=50,
+        description="Número de póliza"
     )
-    tipo: Literal["POLIZA DE VIDA GRUPO", "POLIZA COLECTIVA", "POLIZA INDIVIDUAL"] = Field(
+    tipo: str = Field(
         default="POLIZA DE VIDA GRUPO",
         description="Tipo de póliza"
     )
     plan_poliza: str = Field(
-        ...,
-        pattern=r"^\d{2}  \d{7}$",
-        description="Plan y número de póliza separados por dos espacios (ej: 06  3144016)"
+        default="N/A",
+        description="Plan de la póliza"
     )
     documento_referencia: str = Field(
-        ...,
-        pattern=r"^\d{8}$",
-        description="Documento de referencia interno (8 dígitos)"
+        default="N/A",
+        description="Documento de referencia interno"
     )
     cuota_numero: int = Field(
-        ...,
+        default=1,
         ge=1,
         le=999,
         description="Número de cuota mensual"
@@ -45,6 +44,26 @@ class Poliza(BaseModel):
         description="Fecha de fin del período de cobertura"
     )
     
+    @field_validator('tipo')
+    @classmethod
+    def normalize_tipo(cls, v: str) -> str:
+        """Normaliza el tipo de póliza."""
+        # Mapeo de valores comunes a formato estándar
+        tipo_map = {
+            "VIDA GRUPO": "POLIZA DE VIDA GRUPO",
+            "VIDA INDIVIDUAL": "POLIZA INDIVIDUAL",
+            "COLECTIVA": "POLIZA COLECTIVA",
+            "SOAT": "POLIZA SOAT",
+            "ACCIDENTES PERSONALES": "POLIZA DE ACCIDENTES PERSONALES",
+            "SALUD": "POLIZA DE SALUD",
+        }
+        # Si ya tiene el formato correcto, retornar
+        if v.upper().startswith("POLIZA"):
+            return v.upper()
+        # Si está en el mapeo, convertir
+        v_upper = v.upper()
+        return tipo_map.get(v_upper, f"POLIZA DE {v_upper}")
+    
     @field_validator('vigencia_fin')
     @classmethod
     def validate_vigencia(cls, v: date, info) -> date:
@@ -56,7 +75,9 @@ class Poliza(BaseModel):
     @property
     def plan_code(self) -> str:
         """Extrae el código de plan del campo plan_poliza."""
-        return self.plan_poliza.split('  ')[0]
+        if '  ' in self.plan_poliza:
+            return self.plan_poliza.split('  ')[0]
+        return "N/A"
     
     @property
     def ramo(self) -> str:

@@ -66,6 +66,18 @@ class Documento(BaseModel):
     # Montos del cobro
     montos: MontosCobro
     
+    # Aseguradora beneficiaria (quien recibe el pago)
+    payee_company_name: str = Field(
+        default="SEGUROS DE VIDA SURAMERICANA S.A.",
+        min_length=1,
+        description="Nombre de la aseguradora que recibe el pago"
+    )
+    payee_company_nit: str = Field(
+        default="890903790-5",
+        min_length=1,
+        description="NIT de la aseguradora beneficiaria"
+    )
+    
     # Firma
     firmante_nombre: str = Field(..., min_length=1, max_length=60)
     firmante_cargo: str = Field(..., min_length=1, max_length=50)
@@ -149,6 +161,10 @@ class Documento(BaseModel):
                 "total": float(self.montos.total)
             },
             
+            # Aseguradora beneficiaria
+            "payee_company_name": self.payee_company_name,
+            "payee_company_nit": self.payee_company_nit,
+            
             # Firma
             "firmante_nombre": self.firmante_nombre,
             "firmante_cargo": self.firmante_cargo,
@@ -158,8 +174,6 @@ class Documento(BaseModel):
             "es_borrador": self.es_borrador,
             
             # Datos estáticos (de configuración)
-            "payee_company_name": "SEGUROS DE VIDA SURAMERICANA S.A.",
-            "payee_company_nit": "890903790-5",
             "sender_company_name": "SEGUROS UNIÓN",
             "sender_email": "gerencia@segurosunion.com",
             "sender_address": "Carrera 77 A # 49 - 37 .Sector Estadio - Medellin"

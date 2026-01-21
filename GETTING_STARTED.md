@@ -59,10 +59,10 @@ GENERADOR_CARTAS_COBRO/
 ├── validators/          ✅ Validadores (NIT, teléfono, moneda, fechas)
 ├── generators/          ✅ Generadores PDF (ReportLab)
 ├── gui/                 🚧 Interfaz gráfica (PyQt6) - Pendiente
-├── utils/               ✅ Utilidades (config, logger, versioning)
+├── utils/               ✅ Utilidades (config, logger, versioning, payee_manager)
 ├── templates/           ✅ Plantilla JSON configurada
 ├── output/              ✅ Directorio de salida
-├── logs/                ✅ Logs y auditoría
+├── logs/                ✅ Logs, auditoría, consecutivos, aseguradoras
 ├── tests/               ✅ Tests básicos
 ├── main.py              ✅ Entry point GUI (placeholder)
 ├── cli.py               ✅ CLI funcional
@@ -78,8 +78,21 @@ GENERADOR_CARTAS_COBRO/
 3. **Generador PDF** con ReportLab (layout completo)
 4. **CLI interactivo** para generar cartas
 5. **Sistema de consecutivos** automáticos
-6. **Logging y auditoría** completos
-7. **Formato colombiano** de moneda y fechas
+6. **Gestión de aseguradoras beneficiarias** con historial
+7. **Logging y auditoría** completos
+8. **Formato colombiano** de moneda y fechas
+
+## 🆕 Nueva funcionalidad: Aseguradoras Beneficiarias
+
+El sistema ahora permite gestionar las aseguradoras que reciben el pago:
+
+- ✅ Seleccionar de un catálogo guardado
+- ✅ Agregar nuevas aseguradoras
+- ✅ Guardar automáticamente en `logs/payees.json`
+- ✅ Ordenar por frecuencia de uso
+- ✅ Validación de NIT
+
+Ver [DEMO_ASEGURADORAS.md](DEMO_ASEGURADORAS.md) para más información.
 
 ## 🚧 Pendiente de implementación
 

@@ -14,33 +14,21 @@ logger = get_logger(__name__)
 def main():
     """Función principal de la aplicación GUI."""
     try:
-        # Crear aplicación Qt
+        # Importar y ejecutar la GUI simple
+        from gui_simple import GeneradorCartasGUI
+        
         app = QApplication(sys.argv)
         app.setApplicationName(config.APP_NAME)
         app.setApplicationVersion(config.APP_VERSION)
+        app.setStyle("Fusion")
         
-        # TODO: Importar y crear ventana principal
-        # from gui.main_window import MainWindow
-        # window = MainWindow()
-        # window.show()
-        
-        # Placeholder mientras se implementa la GUI
-        from PyQt6.QtWidgets import QMessageBox
-        msg = QMessageBox()
-        msg.setIcon(QMessageBox.Icon.Information)
-        msg.setWindowTitle(config.APP_NAME)
-        msg.setText(f"{config.APP_NAME} v{config.APP_VERSION}")
-        msg.setInformativeText(
-            "La interfaz gráfica está en desarrollo.\n\n"
-            "Por ahora, usa la interfaz CLI:\n"
-            "python cli.py --interactive"
-        )
-        msg.exec()
+        window = GeneradorCartasGUI()
+        window.show()
         
         logger.info(f"Aplicación iniciada: {config.APP_NAME} v{config.APP_VERSION}")
         
-        # return app.exec()
-        return 0
+        # Iniciar bucle de eventos
+        return app.exec()
         
     except Exception as e:
         logger.error(f"Error al iniciar la aplicación: {str(e)}", exc_info=True)

@@ -179,18 +179,27 @@ class CartaCobroGenerator(BaseGenerator):
         """Construye la sección de encabezado."""
         elements = []
         
-        # Ciudad y fecha
-        elements.append(Paragraph(
-            f"{data['ciudad_emision']}, {data['fecha_emision']}",
-            styles['Normal']
-        ))
-        elements.append(Spacer(1, 0.3 * cm))
+        # Ciudad/fecha y número de carta en dos columnas
+        header_data = [[
+            Paragraph(f"{data['ciudad_emision']}, {data['fecha_emision']}", styles['Normal']),
+            Paragraph(f"<b>CARTA COBRO N°</b>", styles['Normal'])
+        ], [
+            "",
+            Paragraph(f"<b>{data['numero_carta']}</b>", styles['CartaTitle'])
+        ]]
         
-        # Número de carta
-        elements.append(Paragraph(
-            f"<b>CARTA COBRO N° {data['numero_carta']}</b>",
-            styles['CartaTitle']
-        ))
+        header_table = Table(header_data, colWidths=[10*cm, 8*cm])
+        header_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+            ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+            ('TOPPADDING', (0, 0), (-1, -1), 0),
+        ]))
+        
+        elements.append(header_table)
         
         return elements
     

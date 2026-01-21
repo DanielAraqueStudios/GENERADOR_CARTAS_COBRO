@@ -224,19 +224,30 @@
       "required": false,
       "max_length": 10,
       "help_text": "Iniciales opcionales (ej: YAVV)"
+    },
+    {
+      "id": "payee_company_name",
+      "label": "Aseguradora Beneficiaria",
+      "type": "text",
+      "required": true,
+      "validation": "text_not_empty",
+      "max_length": 100,
+      "help_text": "Nombre de la aseguradora que recibe el pago",
+      "default": "SEGUROS DE VIDA SURAMERICANA S.A."
+    },
+    {
+      "id": "payee_company_nit",
+      "label": "NIT de la Aseguradora",
+      "type": "text",
+      "required": true,
+      "pattern": "^\\d{9}-\\d$",
+      "validation": "nit_colombiano",
+      "help_text": "NIT de la aseguradora beneficiaria",
+      "default": "890903790-5"
     }
   ],
   
   "static_fields": [
-    {
-      "id": "payee_company_name",
-      "value": "SEGUROS DE VIDA SURAMERICANA S.A.",
-      "description": "Aseguradora real que recibe el pago"
-    },
-    {
-      "id": "payee_company_nit",
-      "value": "890903790-5"
-    },
     {
       "id": "sender_company_name",
       "value": "SEGUROS UNIÓN",

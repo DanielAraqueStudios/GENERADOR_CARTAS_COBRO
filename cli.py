@@ -20,8 +20,120 @@ from generators.carta_cobro_generator import CartaCobroGenerator
 from utils.config import config
 from utils.logger import get_logger
 from utils.versioning import version_manager
+from utils.payee_manager import payee_manager
 
 logger = get_logger(__name__)
+
+
+def manage_payees_menu():
+    """Menú para gestionar aseguradoras beneficiarias."""
+    while True:
+        print("\n" + "=" * 60)
+        print("GESTIÓN DE ASEGURADORAS BENEFICIARIAS")
+        print("=" * 60)
+        
+        payees = payee_manager.get_all_payees()
+        
+        if payees:
+            print("\nAseguradoras guardadas:")
+            for idx, payee in enumerate(payees, 1):
+                print(f"{idx}. {payee['name']}")
+                print(f"   NIT: {payee['nit']} | Usada: {payee['usage_count']} veces")
+        else:
+            print("\n⚠ No hay aseguradoras guardadas")
+        
+        print("\nOpciones:")
+        print("1. Agregar nueva aseguradora")
+        print("2. Editar aseguradora existente")
+        print("3. Eliminar aseguradora")
+        print("4. Ver detalles")
+        print("0. Salir")
+        
+        opcion = input("\nSeleccione opción: ").strip()
+        
+        if opcion == '1':
+            # Agregar nueva
+            print("\n➕ AGREGAR NUEVA ASEGURADORA")
+            name = input("Nombre: ").strip().upper()
+            nit = input("NIT: ").strip()
+            if name and nit:
+                payee_manager.add_payee(name, nit)
+                print(f"✓ Aseguradora '{name}' agregada exitosamente")
+            else:
+                print("⚠ Nombre y NIT son obligatorios")
+        
+        elif opcion == '2':
+            # Editar
+            if not payees:
+                print("⚠ No hay aseguradoras para editar")
+                continue
+            
+            print("\n✏️ EDITAR ASEGURADORA")
+            try:
+                idx = int(input(f"Número de aseguradora [1-{len(payees)}]: ")) - 1
+                if 0 <= idx < len(payees):
+                    old_payee = payees[idx]
+                    print(f"\nEditando: {old_payee['name']}")
+                    print(f"NIT actual: {old_payee['nit']}")
+                    
+                    new_name = input(f"Nuevo nombre [Enter para mantener]: ").strip().upper()
+                    new_nit = input(f"Nuevo NIT [Enter para mantener]: ").strip()
+                    
+                    new_name = new_name or old_payee['name']
+                    new_nit = new_nit or old_payee['nit']
+                    
+                    result = payee_manager.update_payee(old_payee['name'], new_name, new_nit)
+                    if result:
+                        print(f"✓ Aseguradora actualizada exitosamente")
+                    else:
+                        print("⚠ Error al actualizar")
+                else:
+                    print("⚠ Número inválido")
+            except ValueError:
+                print("⚠ Entrada inválida")
+        
+        elif opcion == '3':
+            # Eliminar
+            if not payees:
+                print("⚠ No hay aseguradoras para eliminar")
+                continue
+            
+            print("\n🗑️ ELIMINAR ASEGURADORA")
+            try:
+                idx = int(input(f"Número de aseguradora [1-{len(payees)}]: ")) - 1
+                if 0 <= idx < len(payees):
+                    payee = payees[idx]
+                    confirm = input(f"¿Eliminar '{payee['name']}'? (s/n): ").strip().lower()
+                    if confirm == 's':
+                        if payee_manager.delete_payee(payee['name']):
+                            print(f"✓ Aseguradora eliminada exitosamente")
+                        else:
+                            print("⚠ Error al eliminar")
+                    else:
+                        print("Cancelado")
+                else:
+                    print("⚠ Número inválido")
+            except ValueError:
+                print("⚠ Entrada inválida")
+        
+        elif opcion == '4':
+            # Ver detalles
+            if not payees:
+                print("⚠ No hay aseguradoras guardadas")
+                continue
+            
+            print("\n📋 DETALLES DE ASEGURADORAS")
+            for idx, payee in enumerate(payees, 1):
+                print(f"\n{idx}. {payee['name']}")
+                print(f"   NIT: {payee['nit']}")
+                print(f"   Veces usada: {payee['usage_count']}")
+        
+        elif opcion == '0':
+            print("\n👋 ¡Hasta pronto!")
+            break
+        
+        else:
+            print("⚠ Opción no válida")
 
 
 def interactive_mode():
@@ -70,6 +182,86 @@ def interactive_mode():
         
         vigencia_fin_str = input("Fin vigencia (YYYY-MM-DD): ").strip()
         vigencia_fin = date.fromisoformat(vigencia_fin_str)
+        
+        # Aseguradora beneficiaria
+        print("\n🏢 ASEGURADORA BENEFICIARIA (quien recibe el pago)")
+        payees = payee_manager.get_all_payees()
+        
+        if payees:
+            print("\nAseguradoras guardadas:")
+            for idx, payee in enumerate(payees, 1):
+                print(f"{idx}. {payee['name']} (NIT: {payee['nit']}) - Usada {payee['usage_count']} veces")
+            print(f"{len(payees) + 1}. Ingresar nueva aseguradora")
+            print(f"{len(payees) + 2}. Editar aseguradora existente")
+            print(f"{len(payees) + 3}. Eliminar aseguradora")
+            
+            opcion = input(f"\nSeleccione opción [1-{len(payees) + 3}]: ").strip()
+            
+            try:
+                opcion_num = int(opcion)
+                if 1 <= opcion_num <= len(payees):
+                    # Seleccionar existente
+                    selected_payee = payees[opcion_num - 1]
+                    payee_name = selected_payee['name']
+                    payee_nit = selected_payee['nit']
+                    payee_manager.increment_usage(payee_name)
+                    print(f"✓ Seleccionado: {payee_name}")
+                elif opcion_num == len(payees) + 1:
+                    # Ingresar nueva
+                    payee_name = input("Nombre de la aseguradora: ").strip().upper()
+                    payee_nit = input("NIT de la aseguradora: ").strip()
+                    payee_manager.add_payee(payee_name, payee_nit)
+                    print(f"✓ Aseguradora guardada")
+                elif opcion_num == len(payees) + 2:
+                    # Editar existente
+                    edit_idx = int(input(f"Número de aseguradora a editar [1-{len(payees)}]: ")) - 1
+                    if 0 <= edit_idx < len(payees):
+                        old_payee = payees[edit_idx]
+                        print(f"\nEditando: {old_payee['name']}")
+                        new_name = input(f"Nuevo nombre [{old_payee['name']}]: ").strip().upper() or old_payee['name']
+                        new_nit = input(f"Nuevo NIT [{old_payee['nit']}]: ").strip() or old_payee['nit']
+                        payee_manager.update_payee(old_payee['name'], new_name, new_nit)
+                        payee_name = new_name
+                        payee_nit = new_nit
+                        print(f"✓ Aseguradora actualizada")
+                    else:
+                        print("⚠ Opción inválida, usando primera aseguradora")
+                        payee_name = payees[0]['name']
+                        payee_nit = payees[0]['nit']
+                elif opcion_num == len(payees) + 3:
+                    # Eliminar
+                    delete_idx = int(input(f"Número de aseguradora a eliminar [1-{len(payees)}]: ")) - 1
+                    if 0 <= delete_idx < len(payees):
+                        payee_to_delete = payees[delete_idx]
+                        confirm = input(f"¿Eliminar '{payee_to_delete['name']}'? (s/n): ").strip().lower()
+                        if confirm == 's':
+                            payee_manager.delete_payee(payee_to_delete['name'])
+                            print(f"✓ Aseguradora eliminada")
+                        # Usar primera disponible
+                        remaining = payee_manager.get_all_payees()
+                        if remaining:
+                            payee_name = remaining[0]['name']
+                            payee_nit = remaining[0]['nit']
+                        else:
+                            payee_name = input("Nombre de la aseguradora: ").strip().upper()
+                            payee_nit = input("NIT de la aseguradora: ").strip()
+                            payee_manager.add_payee(payee_name, payee_nit)
+                    else:
+                        print("⚠ Opción inválida, usando primera aseguradora")
+                        payee_name = payees[0]['name']
+                        payee_nit = payees[0]['nit']
+                else:
+                    payee_name = input("Nombre de la aseguradora: ").strip().upper()
+                    payee_nit = input("NIT de la aseguradora: ").strip()
+                    payee_manager.add_payee(payee_name, payee_nit)
+            except (ValueError, IndexError):
+                payee_name = input("Nombre de la aseguradora: ").strip().upper()
+                payee_nit = input("NIT de la aseguradora: ").strip()
+                payee_manager.add_payee(payee_name, payee_nit)
+        else:
+            payee_name = input("Nombre de la aseguradora: ").strip().upper()
+            payee_nit = input("NIT de la aseguradora: ").strip()
+            payee_manager.add_payee(payee_name, payee_nit)
         
         # Montos
         print("\n💰 MONTOS")
@@ -122,6 +314,8 @@ def interactive_mode():
             asegurado=asegurado,
             poliza=poliza,
             montos=montos,
+            payee_company_name=payee_name,
+            payee_company_nit=payee_nit,
             firmante_nombre=firmante_nombre,
             firmante_cargo=firmante_cargo,
             firmante_iniciales=firmante_iniciales,
@@ -167,6 +361,8 @@ def from_json_file(json_path: Path):
             asegurado=asegurado,
             poliza=poliza,
             montos=montos,
+            payee_company_name=data.get('payee_company_name', 'SEGUROS DE VIDA SURAMERICANA S.A.'),
+            payee_company_nit=data.get('payee_company_nit', '890903790-5'),
             firmante_nombre=data['firmante_nombre'],
             firmante_cargo=data['firmante_cargo'],
             firmante_iniciales=data.get('firmante_iniciales'),
@@ -224,6 +420,12 @@ Ejemplos:
     )
     
     parser.add_argument(
+        '--manage-payees', '-m',
+        action='store_true',
+        help='Gestionar aseguradoras beneficiarias'
+    )
+    
+    parser.add_argument(
         '--version', '-v',
         action='version',
         version=f'{config.APP_NAME} v{config.APP_VERSION}'
@@ -232,7 +434,7 @@ Ejemplos:
     args = parser.parse_args()
     
     # Si no se especifica ningún argumento, mostrar ayuda
-    if not any([args.interactive, args.from_json, args.stats]):
+    if not any([args.interactive, args.from_json, args.stats, args.manage_payees]):
         parser.print_help()
         sys.exit(0)
     
@@ -248,6 +450,8 @@ Ejemplos:
         for year, data in stats.items():
             print(f"Año {data['year']}: {data['total_documents']} documentos")
         print("=" * 50 + "\n")
+    elif args.manage_payees:
+        manage_payees_menu()
 
 
 if __name__ == '__main__':

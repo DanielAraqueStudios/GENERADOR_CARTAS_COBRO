@@ -1,0 +1,29 @@
+
+╔══════════════════════════════════════════════════════════════╗
+║         GENERADOR DE CARTAS DE COBRO - SEGUROS UNIÓN         ║
+╚══════════════════════════════════════════════════════════════╝
+
+INSTRUCCIONES DE USO:
+--------------------
+
+1. Ejecutar "GeneradorCartasCobro.exe"
+2. Llenar el formulario con los datos de la carta
+3. Hacer clic en "Generar PDF"
+4. Los PDFs se guardarán en la carpeta "output"
+
+CARACTERÍSTICAS:
+---------------
+✓ Gestión de aseguradoras (agregar, editar, eliminar)
+✓ Validación automática de NIT
+✓ Cálculo automático de totales
+✓ Generación de PDFs profesionales
+✓ Selección de carpeta de salida personalizada
+✓ Datos de ejemplo para pruebas rápidas
+
+SOPORTE TÉCNICO:
+---------------
+Para reportar errores o solicitar ayuda, contactar a:
+DANIEL ANTONIO VELEZ PELAEZ
+
+Versión: 1.0.0
+Fecha: Enero 2026
