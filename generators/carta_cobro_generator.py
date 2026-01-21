@@ -131,10 +131,15 @@ class CartaCobroGenerator(BaseGenerator):
         story.extend(self._build_signature(data, styles))
         story.append(Spacer(1, 0.5 * cm))
         
-        # Footer
+        # Footer - Centrado
+        footer_style = ParagraphStyle(
+            name='CenteredSmall',
+            parent=styles['Small'],
+            alignment=TA_CENTER
+        )
         story.append(Paragraph(
             f"{data.get('sender_address', '')} E-mail: {data.get('sender_email', '')}",
-            styles['Small']
+            footer_style
         ))
         
         # Marca de agua si es borrador
@@ -151,6 +156,11 @@ class CartaCobroGenerator(BaseGenerator):
     def _create_styles(self) -> Dict[str, ParagraphStyle]:
         """Crea los estilos de párrafo personalizados."""
         styles = getSampleStyleSheet()
+        
+        # Modificar el estilo Normal para usar justificación
+        styles['Normal'].alignment = TA_JUSTIFY
+        styles['Normal'].fontName = 'Helvetica'
+        styles['Normal'].fontSize = 10
         
         # Crear o sobrescribir estilos personalizados
         if 'CartaTitle' not in styles:
@@ -170,7 +180,7 @@ class CartaCobroGenerator(BaseGenerator):
                 parent=styles['Normal'],
                 fontSize=8,
                 textColor=colors.black,
-                alignment=TA_CENTER
+                alignment=TA_JUSTIFY  # También justificado para textos pequeños
             ))
         
         return styles
@@ -179,52 +189,43 @@ class CartaCobroGenerator(BaseGenerator):
         """Construye la sección de encabezado."""
         elements = []
         
-        # Ciudad/fecha y número de carta en dos columnas
-        header_data = [[
-            Paragraph(f"{data['ciudad_emision']}, {data['fecha_emision']}", styles['Normal']),
-            Paragraph(f"<b>CARTA COBRO N°</b>", styles['Normal'])
-        ], [
-            "",
-            Paragraph(f"<b>{data['numero_carta']}</b>", styles['CartaTitle'])
-        ]]
+        # Fecha alineada a la izquierda
+        elements.append(Paragraph(
+            f"{data['ciudad_emision']}, {data['fecha_emision']}",
+            styles['Normal']
+        ))
         
-        header_table = Table(header_data, colWidths=[10*cm, 8*cm])
-        header_table.setStyle(TableStyle([
-            ('ALIGN', (0, 0), (0, -1), 'LEFT'),
-            ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
-            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
-            ('FONTSIZE', (0, 0), (-1, -1), 10),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
-            ('TOPPADDING', (0, 0), (-1, -1), 0),
-        ]))
-        
-        elements.append(header_table)
+        # Número de carta alineado a la derecha
+        elements.append(Paragraph(
+            f"<b>CARTA COBRO N° {data['numero_carta']}</b>",
+            ParagraphStyle(
+                name='HeaderRight',
+                parent=styles['Normal'],
+                alignment=TA_RIGHT,
+                fontSize=12,
+                fontName='Helvetica-Bold'
+            )
+        ))
         
         return elements
     
     def _build_recipient_section(self, data: Dict, styles) -> list:
-        """Construye la sección de datos del destinatario."""
+        """Construye la sección de datos del destinatario (sin dirección)."""
         elements = []
         
         elements.append(Paragraph("<b>Señores</b>", styles['Normal']))
-        
-        # Crear tabla para alinear datos
-        recipient_data = [
-            [data['cliente_razon_social'], f"NIT {data['cliente_nit']}"],
-            [data['cliente_direccion'], f"Teléfono {data['cliente_telefono']}"],
-            [data['cliente_ciudad'], ""]
-        ]
-        
-        table = Table(recipient_data, colWidths=[12*cm, 6*cm])
-        table.setStyle(TableStyle([
-            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
-            ('FONTSIZE', (0, 0), (-1, -1), 10),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
-        ]))
-        
-        elements.append(table)
+        elements.append(Paragraph(
+            f"{data['cliente_razon_social']}",
+            styles['Normal']
+        ))
+        elements.append(Paragraph(
+            f"{data['cliente_ciudad']}",
+            styles['Normal']
+        ))
+        elements.append(Paragraph(
+            f"NIT {data['cliente_nit']}",
+            styles['Normal']
+        ))
         
         return elements
     
@@ -237,50 +238,123 @@ class CartaCobroGenerator(BaseGenerator):
             f"<b>{data['poliza_tipo']} N° {data['poliza_numero']}</b>",
             styles['Normal']
         ))
-        elements.append(Paragraph(
-            f"<b>{data['cliente_razon_social']}</b>",
-            styles['Normal']
-        ))
         
         return elements
     
     def _build_billing_table(self, data: Dict) -> Table:
-        """Construye la tabla de detalles de cobro."""
+        """Construye la tabla de detalles de cobro con soporte para múltiples pólizas."""
         amounts = data['amounts_raw']
+        campos_activos = data.get('campos_activos', {
+            'prima': True,
+            'impuesto': True,
+            'otros_rubros': True
+        })
         
-        # Headers
-        headers = ['Ramo', 'Plan Póliza', 'Doc.', 'Prima', 'Otros Rubros', 'Impuesto', 'Val. Exter.', 'Total']
+        # Headers base (sin fechas de vigencia)
+        headers = ['Ramo', 'Descripción', 'Doc.']
+        col_widths = [3.5*cm, 3.5*cm, 2.5*cm]
         
-        # Data row
-        row_data = [
-            data.get('poliza_ramo', 'VIDA GRUPO'),
-            data.get('plan_poliza', ''),
-            data.get('documento_referencia', ''),
-            amounts['prima'],
-            amounts['otros_rubros'],
-            amounts['impuesto'],
-            amounts['valor_externo'],
-            amounts['total']
-        ]
+        # Agregar columnas según campos activos
+        if campos_activos.get('prima', True):
+            headers.append('Prima')
+            col_widths.append(2.8*cm)
         
-        table_data = [headers, row_data]
+        if campos_activos.get('otros_rubros', True):
+            headers.append('Otros Rubros')
+            col_widths.append(2.8*cm)
         
-        table = Table(table_data, colWidths=[2.5*cm, 2.5*cm, 2*cm, 2.5*cm, 2.5*cm, 2*cm, 2*cm, 2.5*cm])
+        if campos_activos.get('impuesto', True):
+            headers.append('Impuesto')
+            col_widths.append(2.5*cm)
+        
+        # Total siempre va al final
+        headers.append('Total')
+        col_widths.append(2.8*cm)
+        
+        # Inicializar tabla con headers
+        table_data = [headers]
+        
+        # Obtener lista de pólizas (si existe múltiple, sino usar la póliza principal)
+        polizas = data.get('polizas', [])
+        
+        if polizas:
+            # Múltiples pólizas: crear una fila por cada póliza con sus propios montos (sin fechas)
+            for poliza in polizas:
+                # Descripción solo si checkbox está activo
+                plan_text = poliza.get('plan', '') if poliza.get('check_plan', True) else ''
+                
+                row_data = [
+                    poliza.get('tipo', 'VIDA GRUPO'),
+                    plan_text,
+                    poliza.get('numero', '')
+                ]
+                
+                # Calcular total de esta póliza
+                total_poliza = 0
+                
+                # Agregar montos según campos activos - USAR MONTOS DE CADA PÓLIZA
+                if campos_activos.get('prima', True):
+                    prima_val = poliza.get('prima', 0)
+                    if poliza.get('check_prima', True):
+                        row_data.append(f"${prima_val:,.2f}")
+                        total_poliza += prima_val
+                    else:
+                        row_data.append("-")
+                
+                if campos_activos.get('otros_rubros', True):
+                    otros_val = poliza.get('otros', 0)
+                    if poliza.get('check_otros', True):
+                        row_data.append(f"${otros_val:,.2f}")
+                        total_poliza += otros_val
+                    else:
+                        row_data.append("-")
+                
+                if campos_activos.get('impuesto', True):
+                    iva_val = poliza.get('iva', 0)
+                    if poliza.get('check_iva', True):
+                        row_data.append(f"${iva_val:,.2f}")
+                        total_poliza += iva_val
+                    else:
+                        row_data.append("-")
+                
+                row_data.append(f"${total_poliza:,.2f}")
+                table_data.append(row_data)
+        else:
+            # Póliza única (modo compatibilidad con versión anterior)
+            row_data = [
+                data.get('poliza_ramo', 'VIDA GRUPO'),
+                data.get('plan_poliza', ''),
+                data.get('documento_referencia', '')
+            ]
+            
+            if campos_activos.get('prima', True):
+                row_data.append(amounts['prima'])
+            
+            if campos_activos.get('otros_rubros', True):
+                row_data.append(amounts['otros_rubros'])
+            
+            if campos_activos.get('impuesto', True):
+                row_data.append(amounts['impuesto'])
+            
+            row_data.append(amounts['total'])
+            table_data.append(row_data)
+        
+        table = Table(table_data, colWidths=col_widths)
         table.setStyle(TableStyle([
             # Header style
             ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
             ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 9),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 6),
+            ('FONTSIZE', (0, 0), (-1, 0), 7),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 4),
             
             # Data style
             ('ALIGN', (0, 1), (-1, -1), 'CENTER'),
             ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-            ('FONTSIZE', (0, 1), (-1, -1), 9),
-            ('TOPPADDING', (0, 1), (-1, -1), 4),
-            ('BOTTOMPADDING', (0, 1), (-1, -1), 4),
+            ('FONTSIZE', (0, 1), (-1, -1), 7),
+            ('TOPPADDING', (0, 1), (-1, -1), 3),
+            ('BOTTOMPADDING', (0, 1), (-1, -1), 3),
             
             # Grid
             ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
@@ -289,17 +363,11 @@ class CartaCobroGenerator(BaseGenerator):
         return table
     
     def _build_installment_detail(self, data: Dict, styles) -> list:
-        """Construye el detalle de la cuota."""
+        """Construye el detalle de la cuota (sin línea de cuota mensual y vigencia)."""
         elements = []
         
-        cuota_text = (
-            f"*CUOTA MENSUAL N° {data.get('cuota_numero', '')} "
-            f"VIGENCIA {data.get('vigencia_inicio_text', '')} - {data.get('vigencia_fin_text', '')}"
-        )
-        elements.append(Paragraph(cuota_text, styles['Small']))
-        
         elements.append(Paragraph(
-            f"<b>VALOR A PAGAR A FAVOR DE {data.get('payee_company_name', '')}</b>",
+            f"<b>VALOR A PAGAR A FAVOR DE {data.get('payee_company_name', '')} - NIT {data.get('payee_company_nit', '')}</b>",
             styles['Normal']
         ))
         
@@ -308,20 +376,21 @@ class CartaCobroGenerator(BaseGenerator):
             styles['CartaTitle']
         ))
         
+        # Agregar campo de retorno si está habilitado
+        if data.get('incluir_retorno', False) and data.get('retorno', '').strip():
+            elements.append(Spacer(1, 0.2 * cm))
+            elements.append(Paragraph(
+                f"<b>RETORNO:</b> {data.get('retorno', '')}",
+                styles['Normal']
+            ))
+        
         return elements
     
     def _build_definitions(self, styles) -> list:
         """Construye las definiciones de términos."""
         elements = []
         
-        elements.append(Paragraph(
-            "*Otros Rubros: Se refiere a gastos de expedición y/o otros conceptos.",
-            styles['Small']
-        ))
-        elements.append(Paragraph(
-            "*Val. Exter. (Valores externos): Se refiere a costos bancarios y/o gastos de operación.",
-            styles['Small']
-        ))
+        # Sin definiciones por ahora
         
         return elements
     
@@ -329,16 +398,23 @@ class CartaCobroGenerator(BaseGenerator):
         """Construye las instrucciones de pago."""
         elements = []
         
+        # Obtener link de pago dinámico o usar uno por defecto
+        link_pago = data.get('payee_link_pago', 'WWW.SURA.COM').strip()
+        if not link_pago:
+            link_pago = 'WWW.SURA.COM'
+        
+        # Asegurar que el link tenga protocolo para ser clickeable
+        if not link_pago.startswith(('http://', 'https://')):
+            link_url = f'https://{link_pago}'
+        else:
+            link_url = link_pago
+        
+        # Crear párrafo con link azul clickeable
         elements.append(Paragraph(
-            "PUEDE REALIZAR SUS PAGOS POR PSE EN LA PAGINA WEB WWW.SURA.COM - "
-            "PAGO EXPRESS CON EL RECIBO DE PAGO EN LOS BANCOS AUTORIZADOS POR LA COMPAÑÍA",
+            f'PUEDE REALIZAR SUS PAGOS POR PSE EN LA PAGINA WEB <a href="{link_url}" color="blue"><u>{link_pago}</u></a>',
             styles['Normal']
         ))
         
-        elements.append(Paragraph(
-            f"<b>NIT {data.get('payee_company_nit', '')}</b>",
-            styles['Normal']
-        ))
         elements.append(Paragraph(
             "<b>RECUERDE ENVIARNOS EL SOPORTE DE PAGO…</b>",
             styles['Normal']

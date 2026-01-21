@@ -1,35 +1,41 @@
 {
   "ciudad_emision": "Medellín",
-  "fecha_emision": "2025-12-18",
-  "numero_carta": "15434 - 2025",
-  "mes_cobro": "Octubre",
-  "fecha_limite_pago": "2025-12-23",
+  "fecha_emision": "2026-01-21",
+  "numero_carta": "15434 - 2026",
+  "mes_cobro": "Enero",
+  "fecha_limite_pago": "2026-02-21",
   "asegurado": {
-    "razon_social": "COOPERATIVA DEL COMERCIO EXTERIOR COLOMBIANO",
-    "nit": "860023108-9",
-    "direccion": "CR 13 28 01 P 5",
-    "telefono": "6067676",
-    "ciudad": "Bogotá D.C."
+    "razon_social": "JUAN CARLOS RODRIGUEZ MARTINEZ",
+    "nit": "900123456-6",
+    "direccion": "Carrera 45 # 76-32, Oficina 501",
+    "telefono": "3001234567",
+    "ciudad": "MEDELLIN"
   },
-  "poliza": {
-    "numero": "3144016",
-    "tipo": "POLIZA DE VIDA GRUPO",
-    "plan_poliza": "06  3144016",
-    "documento_referencia": "21155722",
-    "cuota_numero": 5,
-    "vigencia_inicio": "2025-09-30",
-    "vigencia_fin": "2025-10-30"
-  },
+  "polizas": [
+    {
+      "numero": "VG-2026-0001",
+      "tipo": "VIDA GRUPO",
+      "plan": "Plan Empresarial Plus",
+      "vigencia_inicio": "21/01/2026",
+      "vigencia_fin": "21/01/2027"
+    }
+  ],
   "montos": {
-    "prima": 1372412.00,
-    "otros_rubros": 0.00,
-    "impuesto": 0.00,
+    "prima": 1500000.00,
+    "otros_rubros": 50000.00,
+    "impuesto": 285000.00,
     "valor_externo": 0.00
+  },
+  "campos_activos": {
+    "prima": true,
+    "impuesto": true,
+    "otros_rubros": true
   },
   "payee_company_name": "SEGUROS DE VIDA SURAMERICANA S.A.",
   "payee_company_nit": "890903790-5",
-  "firmante_nombre": "YULIANA ANDREA VELASQUEZ VALENCI",
-  "firmante_cargo": "Ejecutivo",
-  "firmante_iniciales": "YAVV",
+  "payee_link_pago": "WWW.SURA.COM",
+  "firmante_nombre": "DANIEL GARCIA ARAQUE",
+  "firmante_cargo": "DESARROLLADOR",
+  "firmante_iniciales": "DGA",
   "es_borrador": false
 }

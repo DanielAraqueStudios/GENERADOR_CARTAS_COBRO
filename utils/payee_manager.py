@@ -54,6 +54,7 @@ class PayeeManager:
             {
                 "name": "SEGUROS DE VIDA SURAMERICANA S.A.",
                 "nit": "890903790-5",
+                "link_pago": "WWW.SURA.COM",
                 "usage_count": 0
             }
         ]
@@ -67,13 +68,14 @@ class PayeeManager:
                 'last_updated': str(Path(__file__).parent)
             }, f, indent=2, ensure_ascii=False)
     
-    def add_payee(self, name: str, nit: str) -> Dict:
+    def add_payee(self, name: str, nit: str, link_pago: str = "") -> Dict:
         """
         Agrega una nueva aseguradora o actualiza existente.
         
         Args:
             name: Nombre de la aseguradora
             nit: NIT de la aseguradora
+            link_pago: Link de pago de la aseguradora
         
         Returns:
             Dict: Aseguradora agregada/actualizada
@@ -83,6 +85,7 @@ class PayeeManager:
             for payee in self.payees:
                 if payee['name'].upper() == name.upper():
                     payee['nit'] = nit
+                    payee['link_pago'] = link_pago.strip()
                     payee['usage_count'] += 1
                     self._save_payees()
                     return payee
@@ -91,6 +94,7 @@ class PayeeManager:
             new_payee = {
                 "name": name.upper().strip(),
                 "nit": nit.strip(),
+                "link_pago": link_pago.strip(),
                 "usage_count": 1
             }
             self.payees.append(new_payee)
@@ -164,7 +168,7 @@ class PayeeManager:
                     return True
             return False
     
-    def update_payee(self, old_name: str, new_name: str, new_nit: str) -> Optional[Dict]:
+    def update_payee(self, old_name: str, new_name: str, new_nit: str, new_link_pago: str = "") -> Optional[Dict]:
         """
         Actualiza el nombre y/o NIT de una aseguradora existente.
         
@@ -172,6 +176,7 @@ class PayeeManager:
             old_name: Nombre actual de la aseguradora
             new_name: Nuevo nombre de la aseguradora
             new_nit: Nuevo NIT de la aseguradora
+            new_link_pago: Nuevo link de pago de la aseguradora
         
         Returns:
             Optional[Dict]: Aseguradora actualizada o None si no se encontró
@@ -182,6 +187,7 @@ class PayeeManager:
                 if payee['name'].upper() == old_name_upper:
                     payee['name'] = new_name.upper().strip()
                     payee['nit'] = new_nit.strip()
+                    payee['link_pago'] = new_link_pago.strip()
                     self._save_payees()
                     return payee
             return None

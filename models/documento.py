@@ -78,6 +78,16 @@ class Documento(BaseModel):
         description="NIT de la aseguradora beneficiaria"
     )
     
+    # Retorno (campo opcional editable)
+    retorno: Optional[str] = Field(
+        default=None,
+        description="Campo de retorno editable (solo se incluye en PDF si está completo)"
+    )
+    incluir_retorno: bool = Field(
+        default=False,
+        description="Si se debe incluir el campo de retorno en el PDF"
+    )
+    
     # Firma
     firmante_nombre: str = Field(..., min_length=1, max_length=60)
     firmante_cargo: str = Field(..., min_length=1, max_length=50)
@@ -164,6 +174,10 @@ class Documento(BaseModel):
             # Aseguradora beneficiaria
             "payee_company_name": self.payee_company_name,
             "payee_company_nit": self.payee_company_nit,
+            
+            # Retorno
+            "retorno": self.retorno or "",
+            "incluir_retorno": self.incluir_retorno,
             
             # Firma
             "firmante_nombre": self.firmante_nombre,

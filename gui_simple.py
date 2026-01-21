@@ -9,7 +9,7 @@ from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QLineEdit, QPushButton, QComboBox, QDateEdit, QTextEdit,
     QTableWidget, QTableWidgetItem, QTabWidget, QMessageBox, QGroupBox,
-    QFormLayout, QHeaderView, QDialog, QDialogButtonBox, QScrollArea
+    QFormLayout, QHeaderView, QDialog, QDialogButtonBox, QScrollArea, QCheckBox
 )
 from PyQt6.QtCore import Qt, QDate
 from PyQt6.QtGui import QFont, QIcon
@@ -27,7 +27,7 @@ logger = get_logger(__name__)
 class AseguradoraDialog(QDialog):
     """Diálogo para agregar/editar aseguradoras."""
     
-    def __init__(self, parent=None, nombre="", nit=""):
+    def __init__(self, parent=None, nombre="", nit="", link_pago=""):
         super().__init__(parent)
         self.setWindowTitle("Aseguradora")
         self.setModal(True)
@@ -38,9 +38,12 @@ class AseguradoraDialog(QDialog):
         # Campos
         self.nombre_input = QLineEdit(nombre)
         self.nit_input = QLineEdit(nit)
+        self.link_pago_input = QLineEdit(link_pago)
+        self.link_pago_input.setPlaceholderText("Ej: WWW.SURA.COM")
         
         layout.addRow("Nombre:", self.nombre_input)
         layout.addRow("NIT:", self.nit_input)
+        layout.addRow("Link de Pago:", self.link_pago_input)
         
         # Botones
         buttons = QDialogButtonBox(
@@ -55,7 +58,170 @@ class AseguradoraDialog(QDialog):
         """Retorna los datos ingresados."""
         return {
             'nombre': self.nombre_input.text().strip(),
-            'nit': self.nit_input.text().strip()
+            'nit': self.nit_input.text().strip(),
+            'link_pago': self.link_pago_input.text().strip()
+        }
+
+
+class PolizaDialog(QDialog):
+    """Diálogo para agregar/editar pólizas."""
+    
+    def __init__(self, parent=None, numero="", tipo="VIDA GRUPO", plan="", fecha_inicio=None, fecha_fin=None, 
+                 prima="0", iva="0", otros="0", check_prima=True, check_iva=True, check_otros=True, check_plan=True):
+        super().__init__(parent)
+        self.setWindowTitle("Agregar Póliza")
+        self.setModal(True)
+        self.setMinimumWidth(500)
+        
+        main_layout = QVBoxLayout(self)
+        
+        # Sección de datos de la póliza
+        group_datos = QGroupBox("Datos de la Póliza")
+        layout = QFormLayout()
+        
+        # Campos básicos
+        self.numero_input = QLineEdit(numero)
+        self.numero_input.setPlaceholderText("Ej: VG-2026-0001")
+        
+        self.tipo_input = QLineEdit(tipo)
+        self.tipo_input.setPlaceholderText("Ej: VIDA GRUPO, SOAT, etc.")
+        
+        # Descripción con checkbox
+        layout_plan = QHBoxLayout()
+        self.check_plan = QCheckBox("")
+        self.check_plan.setChecked(check_plan)
+        self.plan_input = QLineEdit(plan)
+        self.plan_input.setPlaceholderText("Ej: Plan Empresarial Plus")
+        self.plan_input.setEnabled(check_plan)
+        self.check_plan.stateChanged.connect(lambda: self.plan_input.setEnabled(self.check_plan.isChecked()))
+        layout_plan.addWidget(self.check_plan)
+        layout_plan.addWidget(self.plan_input)
+        
+        self.fecha_inicio_input = QDateEdit()
+        self.fecha_inicio_input.setCalendarPopup(True)
+        self.fecha_inicio_input.setDate(fecha_inicio if fecha_inicio else QDate.currentDate())
+        
+        self.fecha_fin_input = QDateEdit()
+        self.fecha_fin_input.setCalendarPopup(True)
+        self.fecha_fin_input.setDate(fecha_fin if fecha_fin else QDate.currentDate().addYears(1))
+        
+        layout.addRow("Número de Póliza:", self.numero_input)
+        layout.addRow("Ramo:", self.tipo_input)
+        layout.addRow("Descripción:", layout_plan)
+        layout.addRow("Inicio de Vigencia:", self.fecha_inicio_input)
+        layout.addRow("Fin de Vigencia:", self.fecha_fin_input)
+        
+        group_datos.setLayout(layout)
+        main_layout.addWidget(group_datos)
+        
+        # Sección de montos
+        group_montos = QGroupBox("Montos de Cobro")
+        layout_montos = QVBoxLayout()
+        
+        # Prima
+        layout_prima = QHBoxLayout()
+        self.check_prima = QCheckBox("Prima ($):")
+        self.check_prima.setChecked(check_prima)
+        self.check_prima.setStyleSheet("QCheckBox { font-weight: bold; }")
+        self.prima_input = QLineEdit(prima)
+        self.prima_input.setEnabled(check_prima)
+        self.check_prima.stateChanged.connect(lambda: self.prima_input.setEnabled(self.check_prima.isChecked()))
+        self.prima_input.textChanged.connect(self.calcular_total)
+        layout_prima.addWidget(self.check_prima, 1)
+        layout_prima.addWidget(self.prima_input, 2)
+        layout_montos.addLayout(layout_prima)
+        
+        # IVA
+        layout_iva = QHBoxLayout()
+        self.check_iva = QCheckBox("IVA ($):")
+        self.check_iva.setChecked(check_iva)
+        self.check_iva.setStyleSheet("QCheckBox { font-weight: bold; }")
+        self.iva_input = QLineEdit(iva)
+        self.iva_input.setEnabled(check_iva)
+        self.check_iva.stateChanged.connect(lambda: self.iva_input.setEnabled(self.check_iva.isChecked()))
+        self.iva_input.textChanged.connect(self.calcular_total)
+        layout_iva.addWidget(self.check_iva, 1)
+        layout_iva.addWidget(self.iva_input, 2)
+        layout_montos.addLayout(layout_iva)
+        
+        # Otros
+        layout_otros = QHBoxLayout()
+        self.check_otros = QCheckBox("Otros Conceptos ($):")
+        self.check_otros.setChecked(check_otros)
+        self.check_otros.setStyleSheet("QCheckBox { font-weight: bold; }")
+        self.otros_input = QLineEdit(otros)
+        self.otros_input.setEnabled(check_otros)
+        self.check_otros.stateChanged.connect(lambda: self.otros_input.setEnabled(self.check_otros.isChecked()))
+        self.otros_input.textChanged.connect(self.calcular_total)
+        layout_otros.addWidget(self.check_otros, 1)
+        layout_otros.addWidget(self.otros_input, 2)
+        layout_montos.addLayout(layout_otros)
+        
+        # Total
+        layout_total = QHBoxLayout()
+        label_total = QLabel("TOTAL:")
+        label_total.setStyleSheet("QLabel { font-weight: bold; }")
+        self.total_input = QLineEdit("0")
+        self.total_input.setReadOnly(True)
+        self.total_input.setStyleSheet("QLineEdit { background-color: #e8f5e9; font-weight: bold; }")
+        layout_total.addWidget(label_total, 1)
+        layout_total.addWidget(self.total_input, 2)
+        layout_montos.addLayout(layout_total)
+        
+        group_montos.setLayout(layout_montos)
+        main_layout.addWidget(group_montos)
+        
+        # Calcular total inicial
+        self.calcular_total()
+        
+        # Botones
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | 
+            QDialogButtonBox.StandardButton.Cancel
+        )
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        main_layout.addWidget(buttons)
+    
+    def calcular_total(self):
+        """Calcula el total sumando los montos activos."""
+        total = 0
+        
+        if self.check_prima.isChecked():
+            try:
+                total += float(self.prima_input.text().replace(',', ''))
+            except ValueError:
+                pass
+        
+        if self.check_iva.isChecked():
+            try:
+                total += float(self.iva_input.text().replace(',', ''))
+            except ValueError:
+                pass
+        
+        if self.check_otros.isChecked():
+            try:
+                total += float(self.otros_input.text().replace(',', ''))
+            except ValueError:
+                pass
+        
+        self.total_input.setText(f"{total:,.2f}")
+    
+    def get_data(self):
+        """Retorna los datos ingresados."""
+        return {
+            'numero': self.numero_input.text().strip(),
+            'tipo': self.tipo_input.text().strip(),
+            'plan': self.plan_input.text().strip(),
+            'fecha_inicio': self.fecha_inicio_input.date(),
+            'fecha_fin': self.fecha_fin_input.date(),
+            'prima': self.prima_input.text().strip(),
+            'iva': self.iva_input.text().strip(),
+            'otros': self.otros_input.text().strip(),
+            'check_prima': self.check_prima.isChecked(),
+            'check_iva': self.check_iva.isChecked(),
+            'check_otros': self.check_otros.isChecked(),
+            'check_plan': self.check_plan.isChecked()
         }
 
 
@@ -525,94 +691,95 @@ class GeneradorCartasGUI(QMainWindow):
         layout.setSpacing(15)
         layout.setContentsMargins(20, 20, 20, 20)
         
-        # === DATOS DE LA PÓLIZA ===
-        group_poliza = QGroupBox("📋 Datos de la Póliza")
+        # === DATOS DE LAS PÓLIZAS (MÚLTIPLES) ===
+        group_poliza = QGroupBox("📋 Datos de las Pólizas")
         group_poliza.setStyleSheet("QGroupBox { font-size: 14px; font-weight: bold; }")
-        form_poliza = QFormLayout()
-        form_poliza.setSpacing(10)
+        layout_polizas = QVBoxLayout()
+        layout_polizas.setSpacing(10)
         
-        self.numero_poliza = QLineEdit()
-        self.numero_poliza.setMinimumHeight(35)
-        self.numero_poliza.setPlaceholderText("Número de póliza")
+        # Botones para gestionar pólizas
+        btn_layout = QHBoxLayout()
+        btn_agregar_poliza = QPushButton("➕ Agregar Póliza")
+        btn_agregar_poliza.setMinimumHeight(35)
+        btn_agregar_poliza.setStyleSheet("""
+            QPushButton {
+                background-color: #4CAF50;
+                color: white;
+                font-weight: bold;
+                border-radius: 4px;
+            }
+            QPushButton:hover {
+                background-color: #45a049;
+            }
+        """)
+        btn_agregar_poliza.clicked.connect(self.agregar_poliza)
         
-        self.tipo_poliza = QComboBox()
-        self.tipo_poliza.setMinimumHeight(35)
-        self.tipo_poliza.addItems([
-            "VIDA GRUPO",
-            "SOAT",
-            "ACCIDENTES PERSONALES",
-            "SALUD",
-            "VIDA INDIVIDUAL",
-            "OTRO"
-        ])
+        btn_eliminar_poliza = QPushButton("➖ Eliminar Póliza")
+        btn_eliminar_poliza.setMinimumHeight(35)
+        btn_eliminar_poliza.setStyleSheet("""
+            QPushButton {
+                background-color: #f44336;
+                color: white;
+                font-weight: bold;
+                border-radius: 4px;
+            }
+            QPushButton:hover {
+                background-color: #da190b;
+            }
+        """)
+        btn_eliminar_poliza.clicked.connect(self.eliminar_poliza)
         
-        self.plan_poliza = QLineEdit()
-        self.plan_poliza.setMinimumHeight(35)
-        self.plan_poliza.setPlaceholderText("Plan o descripción")
+        btn_layout.addWidget(btn_agregar_poliza)
+        btn_layout.addWidget(btn_eliminar_poliza)
+        btn_layout.addStretch()
+        layout_polizas.addLayout(btn_layout)
         
-        self.fecha_inicio_vigencia = QDateEdit()
-        self.fecha_inicio_vigencia.setCalendarPopup(True)
-        self.fecha_inicio_vigencia.setDate(QDate.currentDate())
-        self.fecha_inicio_vigencia.setMinimumHeight(35)
+        # Tabla de pólizas (sin fechas de vigencia)
+        self.tabla_polizas = QTableWidget()
+        self.tabla_polizas.setColumnCount(7)
+        self.tabla_polizas.setHorizontalHeaderLabels(["Número", "Tipo", "Descripción", "Prima", "IVA", "Otros", "Total"])
+        self.tabla_polizas.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        self.tabla_polizas.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
+        self.tabla_polizas.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
+        self.tabla_polizas.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
+        self.tabla_polizas.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
+        self.tabla_polizas.horizontalHeader().setSectionResizeMode(5, QHeaderView.ResizeMode.ResizeToContents)
+        self.tabla_polizas.horizontalHeader().setSectionResizeMode(6, QHeaderView.ResizeMode.ResizeToContents)
+        self.tabla_polizas.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.tabla_polizas.setMinimumHeight(150)
+        self.tabla_polizas.setMaximumHeight(250)
+        layout_polizas.addWidget(self.tabla_polizas)
         
-        self.fecha_fin_vigencia = QDateEdit()
-        self.fecha_fin_vigencia.setCalendarPopup(True)
-        self.fecha_fin_vigencia.setDate(QDate.currentDate().addYears(1))
-        self.fecha_fin_vigencia.setMinimumHeight(35)
+        # Lista interna para almacenar las pólizas
+        self.polizas_list = []
         
-        form_poliza.addRow("Número de Póliza:", self.numero_poliza)
-        form_poliza.addRow("Tipo de Seguro:", self.tipo_poliza)
-        form_poliza.addRow("Plan/Descripción:", self.plan_poliza)
-        form_poliza.addRow("Inicio de Vigencia:", self.fecha_inicio_vigencia)
-        form_poliza.addRow("Fin de Vigencia:", self.fecha_fin_vigencia)
-        group_poliza.setLayout(form_poliza)
+        group_poliza.setLayout(layout_polizas)
         layout.addWidget(group_poliza)
         
-        # === MONTOS ===
-        group_montos = QGroupBox("💰 Montos a Cobrar")
-        group_montos.setStyleSheet("QGroupBox { font-size: 14px; font-weight: bold; }")
-        form_montos = QFormLayout()
-        form_montos.setSpacing(10)
+        # === TOTAL GENERAL (SUMA DE TODAS LAS PÓLIZAS) ===
+        group_total = QGroupBox("💵 Total General")
+        group_total.setStyleSheet("QGroupBox { font-size: 14px; font-weight: bold; }")
+        layout_total_general = QVBoxLayout()
         
-        self.prima = QLineEdit("0")
-        self.prima.setMinimumHeight(35)
-        self.prima.setPlaceholderText("0.00")
-        
-        self.iva = QLineEdit("0")
-        self.iva.setMinimumHeight(35)
-        self.iva.setPlaceholderText("0.00")
-        
-        self.otros = QLineEdit("0")
-        self.otros.setMinimumHeight(35)
-        self.otros.setPlaceholderText("0.00")
-        
-        self.total = QLineEdit("0")
-        self.total.setMinimumHeight(40)
-        self.total.setReadOnly(True)
-        self.total.setStyleSheet("""
+        self.total_general = QLineEdit("$0.00")
+        self.total_general.setMinimumHeight(50)
+        self.total_general.setReadOnly(True)
+        self.total_general.setStyleSheet("""
             QLineEdit {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                     stop:0 #2e7d32, stop:1 #1b5e20);
                 font-weight: bold; 
-                font-size: 18px;
+                font-size: 24px;
                 color: #a5d6a7;
                 border: 3px solid #66bb6a;
                 border-radius: 8px;
                 padding: 10px;
+                text-align: center;
             }
         """)
-        
-        # Conectar para cálculo automático
-        self.prima.textChanged.connect(self.calcular_total)
-        self.iva.textChanged.connect(self.calcular_total)
-        self.otros.textChanged.connect(self.calcular_total)
-        
-        form_montos.addRow("Prima ($):", self.prima)
-        form_montos.addRow("IVA ($):", self.iva)
-        form_montos.addRow("Otros Conceptos ($):", self.otros)
-        form_montos.addRow("TOTAL A PAGAR ($):", self.total)
-        group_montos.setLayout(form_montos)
-        layout.addWidget(group_montos)
+        layout_total_general.addWidget(self.total_general)
+        group_total.setLayout(layout_total_general)
+        layout.addWidget(group_total)
         
         layout.addStretch()
         
@@ -648,6 +815,36 @@ class GeneradorCartasGUI(QMainWindow):
         form_aseguradora.addRow("NIT Aseguradora:", self.nit_aseguradora)
         group_aseguradora.setLayout(form_aseguradora)
         layout.addWidget(group_aseguradora)
+        
+        # === RETORNO ===
+        group_retorno = QGroupBox("🔄 Retorno")
+        group_retorno.setStyleSheet("QGroupBox { font-size: 14px; font-weight: bold; }")
+        layout_retorno = QVBoxLayout()
+        layout_retorno.setSpacing(10)
+        
+        # Checkbox para incluir retorno
+        layout_retorno_check = QHBoxLayout()
+        self.check_incluir_retorno = QCheckBox("Incluir campo de Retorno en el PDF")
+        self.check_incluir_retorno.setStyleSheet("QCheckBox { font-size: 13px; }")
+        layout_retorno_check.addWidget(self.check_incluir_retorno)
+        layout_retorno.addLayout(layout_retorno_check)
+        
+        # Campo de texto para el retorno
+        label_retorno = QLabel("Valor de Retorno:")
+        label_retorno.setStyleSheet("QLabel { font-weight: bold; }")
+        self.retorno_input = QLineEdit()
+        self.retorno_input.setMinimumHeight(35)
+        self.retorno_input.setPlaceholderText("Ej: Realizar retorno a cuenta")
+        self.retorno_input.setEnabled(False)
+        
+        # Conectar checkbox con el input
+        self.check_incluir_retorno.stateChanged.connect(lambda: self.retorno_input.setEnabled(self.check_incluir_retorno.isChecked()))
+        
+        layout_retorno.addWidget(label_retorno)
+        layout_retorno.addWidget(self.retorno_input)
+        
+        group_retorno.setLayout(layout_retorno)
+        layout.addWidget(group_retorno)
         
         # === FIRMA ===
         group_firma = QGroupBox("✍️ Datos de Firma")
@@ -857,11 +1054,12 @@ class GeneradorCartasGUI(QMainWindow):
         
         # Tabla
         self.tabla_aseguradoras = QTableWidget()
-        self.tabla_aseguradoras.setColumnCount(3)
-        self.tabla_aseguradoras.setHorizontalHeaderLabels(["Nombre", "NIT", "Veces Usado"])
+        self.tabla_aseguradoras.setColumnCount(4)
+        self.tabla_aseguradoras.setHorizontalHeaderLabels(["Nombre", "NIT", "Link de Pago", "Veces Usado"])
         self.tabla_aseguradoras.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
         self.tabla_aseguradoras.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
-        self.tabla_aseguradoras.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
+        self.tabla_aseguradoras.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
+        self.tabla_aseguradoras.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
         self.tabla_aseguradoras.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.tabla_aseguradoras.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.tabla_aseguradoras.setAlternatingRowColors(True)
@@ -885,7 +1083,8 @@ class GeneradorCartasGUI(QMainWindow):
         for i, payee in enumerate(payees):
             self.tabla_aseguradoras.setItem(i, 0, QTableWidgetItem(payee['name']))
             self.tabla_aseguradoras.setItem(i, 1, QTableWidgetItem(payee['nit']))
-            self.tabla_aseguradoras.setItem(i, 2, QTableWidgetItem(str(payee.get('usage_count', 0))))
+            self.tabla_aseguradoras.setItem(i, 2, QTableWidgetItem(payee.get('link_pago', '')))
+            self.tabla_aseguradoras.setItem(i, 3, QTableWidgetItem(str(payee.get('usage_count', 0))))
     
     def on_aseguradora_changed(self):
         """Se ejecuta cuando cambia la aseguradora seleccionada."""
@@ -894,17 +1093,6 @@ class GeneradorCartasGUI(QMainWindow):
             self.nit_aseguradora.setText(data['nit'])
         else:
             self.nit_aseguradora.clear()
-    
-    def calcular_total(self):
-        """Calcula el total automáticamente."""
-        try:
-            prima = float(self.prima.text() or 0)
-            iva = float(self.iva.text() or 0)
-            otros = float(self.otros.text() or 0)
-            total = prima + iva + otros
-            self.total.setText(f"{total:.2f}")
-        except ValueError:
-            self.total.setText("0")
     
     def limpiar_formulario(self):
         """Limpia todos los campos del formulario."""
@@ -928,15 +1116,10 @@ class GeneradorCartasGUI(QMainWindow):
             self.telefono_asegurado.clear()
             self.ciudad_asegurado.clear()
             
-            self.numero_poliza.clear()
-            self.tipo_poliza.setCurrentIndex(0)
-            self.plan_poliza.clear()
-            self.fecha_inicio_vigencia.setDate(QDate.currentDate())
-            self.fecha_fin_vigencia.setDate(QDate.currentDate().addYears(1))
-            
-            self.prima.setText("0")
-            self.iva.setText("0")
-            self.otros.setText("0")
+            # Limpiar lista de pólizas
+            self.polizas_list.clear()
+            self.actualizar_tabla_polizas()
+            self.calcular_total_general()
             
             self.aseguradora_combo.setCurrentIndex(0)
     
@@ -956,17 +1139,45 @@ class GeneradorCartasGUI(QMainWindow):
         self.telefono_asegurado.setText("3001234567")
         self.ciudad_asegurado.setText("MEDELLIN")
         
-        # Datos de la póliza
-        self.numero_poliza.setText("VG-2026-0001")
-        self.tipo_poliza.setCurrentText("VIDA GRUPO")
-        self.plan_poliza.setText("Plan Empresarial Plus")
-        self.fecha_inicio_vigencia.setDate(QDate.currentDate())
-        self.fecha_fin_vigencia.setDate(QDate.currentDate().addYears(1))
+        # Limpiar y agregar pólizas de ejemplo
+        self.polizas_list.clear()
         
-        # Montos
-        self.prima.setText("1500000")
-        self.iva.setText("285000")
-        self.otros.setText("50000")
+        # Póliza 1
+        poliza1 = {
+            'numero': 'VG-2026-0001',
+            'tipo': 'VIDA GRUPO',
+            'plan': 'Plan Empresarial Plus',
+            'fecha_inicio': QDate.currentDate(),
+            'fecha_fin': QDate.currentDate().addYears(1),
+            'prima': '1500000',
+            'iva': '285000',
+            'otros': '50000',
+            'check_prima': True,
+            'check_iva': True,
+            'check_otros': True,
+            'check_plan': True
+        }
+        self.polizas_list.append(poliza1)
+        
+        # Póliza 2
+        poliza2 = {
+            'numero': 'AP-2026-0002',
+            'tipo': 'ACCIDENTES PERSONALES',
+            'plan': 'Cobertura Total',
+            'fecha_inicio': QDate.currentDate(),
+            'fecha_fin': QDate.currentDate().addYears(1),
+            'prima': '800000',
+            'iva': '152000',
+            'otros': '0',
+            'check_prima': True,
+            'check_iva': True,
+            'check_otros': False,
+            'check_plan': True
+        }
+        self.polizas_list.append(poliza2)
+        
+        self.actualizar_tabla_polizas()
+        self.calcular_total_general()
         
         # Aseguradora - intentar seleccionar la primera si existe
         if self.aseguradora_combo.count() > 1:
@@ -981,7 +1192,7 @@ class GeneradorCartasGUI(QMainWindow):
         QMessageBox.information(
             self,
             "✅ Ejemplo Cargado",
-            "Se han llenado todos los campos con datos de ejemplo.\n\n"
+            "Se han llenado todos los campos con datos de ejemplo (2 pólizas).\n\n"
             "Revise la información y presione 'Generar PDF' cuando esté listo."
         )
     
@@ -1034,8 +1245,8 @@ class GeneradorCartasGUI(QMainWindow):
             errores.append("- Nombre del asegurado")
         if not self.nit_asegurado.text().strip():
             errores.append("- NIT del asegurado")
-        if not self.numero_poliza.text().strip():
-            errores.append("- Número de póliza")
+        if len(self.polizas_list) == 0:
+            errores.append("- Debe agregar al menos una póliza")
         if not self.aseguradora_combo.currentText().strip() or \
            self.aseguradora_combo.currentText() == "-- Seleccione o escriba nueva --":
             errores.append("- Aseguradora")
@@ -1066,28 +1277,65 @@ class GeneradorCartasGUI(QMainWindow):
                 ciudad=self.ciudad_asegurado.text().strip() or "N/A"
             )
             
+            # Usar la primera póliza para el modelo Documento (solo para el asunto)
+            primera_poliza = self.polizas_list[0]
             poliza = Poliza(
-                numero=self.numero_poliza.text().strip(),
-                tipo=self.tipo_poliza.currentText(),
-                plan_poliza=self.plan_poliza.text().strip() or "N/A",
-                vigencia_inicio=self.fecha_inicio_vigencia.date().toPyDate(),
-                vigencia_fin=self.fecha_fin_vigencia.date().toPyDate()
+                numero=primera_poliza['numero'],
+                tipo=primera_poliza['tipo'],
+                plan_poliza=primera_poliza['plan'],
+                vigencia_inicio=primera_poliza['fecha_inicio'].toPyDate(),
+                vigencia_fin=primera_poliza['fecha_fin'].toPyDate()
             )
             
+            # Calcular montos totales sumando todas las pólizas
+            total_prima = 0
+            total_iva = 0
+            total_otros = 0
+            
+            for pol in self.polizas_list:
+                if pol.get('check_prima', False):
+                    try:
+                        total_prima += float(pol.get('prima', '0').replace(',', ''))
+                    except ValueError:
+                        pass
+                if pol.get('check_iva', False):
+                    try:
+                        total_iva += float(pol.get('iva', '0').replace(',', ''))
+                    except ValueError:
+                        pass
+                if pol.get('check_otros', False):
+                    try:
+                        total_otros += float(pol.get('otros', '0').replace(',', ''))
+                    except ValueError:
+                        pass
+            
             montos = MontosCobro(
-                prima=float(self.prima.text() or 0),
-                impuesto=float(self.iva.text() or 0),
-                otros_rubros=float(self.otros.text() or 0)
+                prima=total_prima,
+                impuesto=total_iva,
+                otros_rubros=total_otros
             )
+            
+            # Información de campos activos para el PDF (al menos uno debe estar activo en alguna póliza)
+            campos_activos = {
+                'prima': any(pol.get('check_prima', False) for pol in self.polizas_list),
+                'impuesto': any(pol.get('check_iva', False) for pol in self.polizas_list),
+                'otros_rubros': any(pol.get('check_otros', False) for pol in self.polizas_list)
+            }
             
             # Obtener o guardar aseguradora
             nombre_aseguradora = self.aseguradora_combo.currentText().strip()
             nit_aseguradora = self.nit_aseguradora.text().strip()
             
+            # Obtener link de pago de la aseguradora seleccionada
+            link_pago = ""
+            payee_data = self.aseguradora_combo.currentData()
+            if payee_data:
+                link_pago = payee_data.get('link_pago', '')
+            
             # Si es una nueva aseguradora, agregarla
             if self.aseguradora_combo.currentData() is None and nombre_aseguradora:
                 try:
-                    payee_manager.add_payee(nombre_aseguradora, nit_aseguradora)
+                    payee_manager.add_payee(nombre_aseguradora, nit_aseguradora, link_pago)
                     logger.info(f"Nueva aseguradora agregada: {nombre_aseguradora}")
                 except ValueError:
                     pass  # Ya existe, continuar
@@ -1118,10 +1366,31 @@ class GeneradorCartasGUI(QMainWindow):
             # Crear carpeta si no existe
             self.output_folder.mkdir(parents=True, exist_ok=True)
             
-            # Generar PDF - El backend necesita dict y filename
+            # Generar PDF - El backend necesita dict, filename y campos activos
             generator = CartaCobroGenerator()
+            pdf_data = documento.to_pdf_data()
+            pdf_data['campos_activos'] = campos_activos
+            pdf_data['payee_link_pago'] = link_pago  # Agregar link de pago
+            
+            # Agregar lista completa de pólizas con montos (sin fechas de vigencia)
+            pdf_data['polizas'] = []
+            for pol in self.polizas_list:
+                poliza_data = {
+                    'numero': pol['numero'],
+                    'tipo': pol['tipo'],
+                    'plan': pol['plan'],
+                    'prima': float(pol.get('prima', '0').replace(',', '')) if pol.get('check_prima', False) else 0,
+                    'iva': float(pol.get('iva', '0').replace(',', '')) if pol.get('check_iva', False) else 0,
+                    'otros': float(pol.get('otros', '0').replace(',', '')) if pol.get('check_otros', False) else 0,
+                    'check_prima': pol.get('check_prima', False),
+                    'check_iva': pol.get('check_iva', False),
+                    'check_otros': pol.get('check_otros', False),
+                    'check_plan': pol.get('check_plan', True)
+                }
+                pdf_data['polizas'].append(poliza_data)
+            
             output_file = generator.generate(
-                data=documento.to_pdf_data(),
+                data=pdf_data,
                 output_filename=nombre_archivo
             )
             
@@ -1170,7 +1439,7 @@ class GeneradorCartasGUI(QMainWindow):
             data = dialog.get_data()
             if data['nombre'] and data['nit']:
                 try:
-                    payee_manager.add_payee(data['nombre'], data['nit'])
+                    payee_manager.add_payee(data['nombre'], data['nit'], data.get('link_pago', ''))
                     self.cargar_aseguradoras()
                     QMessageBox.information(self, "✅ Éxito", "Aseguradora agregada correctamente")
                 except ValueError as e:
@@ -1187,17 +1456,100 @@ class GeneradorCartasGUI(QMainWindow):
         
         nombre_actual = self.tabla_aseguradoras.item(row, 0).text()
         nit_actual = self.tabla_aseguradoras.item(row, 1).text()
+        link_pago_actual = self.tabla_aseguradoras.item(row, 2).text()
         
-        dialog = AseguradoraDialog(self, nombre_actual, nit_actual)
+        dialog = AseguradoraDialog(self, nombre_actual, nit_actual, link_pago_actual)
         if dialog.exec():
             data = dialog.get_data()
             if data['nombre'] and data['nit']:
                 try:
-                    payee_manager.update_payee(nombre_actual, data['nombre'], data['nit'])
+                    payee_manager.update_payee(nombre_actual, data['nombre'], data['nit'], data.get('link_pago', ''))
                     self.cargar_aseguradoras()
                     QMessageBox.information(self, "✅ Éxito", "Aseguradora actualizada correctamente")
                 except ValueError as e:
                     QMessageBox.warning(self, "⚠️ Advertencia", str(e))
+    
+    def agregar_poliza(self):
+        """Abre diálogo para agregar una póliza a la lista."""
+        dialog = PolizaDialog(self)
+        if dialog.exec():
+            data = dialog.get_data()
+            if data['numero']:
+                # Agregar a la lista interna
+                self.polizas_list.append(data)
+                
+                # Actualizar tabla y total
+                self.actualizar_tabla_polizas()
+                self.calcular_total_general()
+                QMessageBox.information(self, "✅ Éxito", "Póliza agregada correctamente")
+            else:
+                QMessageBox.warning(self, "⚠️ Advertencia", "El número de póliza es obligatorio")
+    
+    def eliminar_poliza(self):
+        """Elimina la póliza seleccionada de la lista."""
+        row = self.tabla_polizas.currentRow()
+        if row < 0:
+            QMessageBox.warning(self, "⚠️ Advertencia", "Seleccione una póliza para eliminar")
+            return
+        
+        numero_poliza = self.tabla_polizas.item(row, 0).text()
+        
+        respuesta = QMessageBox.question(
+            self,
+            "Confirmar Eliminación",
+            f"¿Está seguro de eliminar la póliza:\n\n{numero_poliza}?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        
+        if respuesta == QMessageBox.StandardButton.Yes:
+            # Eliminar de la lista interna
+            del self.polizas_list[row]
+            
+            # Actualizar tabla y total
+            self.actualizar_tabla_polizas()
+            self.calcular_total_general()
+            QMessageBox.information(self, "✅ Éxito", "Póliza eliminada correctamente")
+    
+    def actualizar_tabla_polizas(self):
+        """Actualiza la tabla de pólizas con los datos de la lista (sin fechas de vigencia)."""
+        self.tabla_polizas.setRowCount(len(self.polizas_list))
+        for i, poliza in enumerate(self.polizas_list):
+            # Datos básicos (sin fechas)
+            self.tabla_polizas.setItem(i, 0, QTableWidgetItem(poliza['numero']))
+            self.tabla_polizas.setItem(i, 1, QTableWidgetItem(poliza['tipo']))
+            
+            # Descripción (mostrar solo si checkbox está activo)
+            plan_text = poliza['plan'] if poliza.get('check_plan', True) else "-"
+            self.tabla_polizas.setItem(i, 2, QTableWidgetItem(plan_text))
+            
+            # Montos
+            prima_val = float(poliza.get('prima', '0').replace(',', '')) if poliza.get('check_prima', False) else 0
+            iva_val = float(poliza.get('iva', '0').replace(',', '')) if poliza.get('check_iva', False) else 0
+            otros_val = float(poliza.get('otros', '0').replace(',', '')) if poliza.get('check_otros', False) else 0
+            total_poliza = prima_val + iva_val + otros_val
+            
+            prima_text = f"${prima_val:,.2f}" if poliza.get('check_prima', False) else "-"
+            iva_text = f"${iva_val:,.2f}" if poliza.get('check_iva', False) else "-"
+            otros_text = f"${otros_val:,.2f}" if poliza.get('check_otros', False) else "-"
+            
+            self.tabla_polizas.setItem(i, 3, QTableWidgetItem(prima_text))
+            self.tabla_polizas.setItem(i, 4, QTableWidgetItem(iva_text))
+            self.tabla_polizas.setItem(i, 5, QTableWidgetItem(otros_text))
+            self.tabla_polizas.setItem(i, 6, QTableWidgetItem(f"${total_poliza:,.2f}"))
+    
+    def calcular_total_general(self):
+        """Calcula el total general sumando todas las pólizas."""
+        total = 0
+        for poliza in self.polizas_list:
+            try:
+                prima_val = float(poliza.get('prima', '0').replace(',', '')) if poliza.get('check_prima', False) else 0
+                iva_val = float(poliza.get('iva', '0').replace(',', '')) if poliza.get('check_iva', False) else 0
+                otros_val = float(poliza.get('otros', '0').replace(',', '')) if poliza.get('check_otros', False) else 0
+                total += prima_val + iva_val + otros_val
+            except (ValueError, AttributeError):
+                pass
+        
+        self.total_general.setText(f"${total:,.2f}")
     
     def eliminar_aseguradora(self):
         """Elimina la aseguradora seleccionada."""
