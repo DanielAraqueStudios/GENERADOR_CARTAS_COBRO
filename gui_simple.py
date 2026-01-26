@@ -19,6 +19,7 @@ from models.documento import Documento, Asegurado, Poliza, MontosCobro
 from generators.carta_cobro_generator import CartaCobroGenerator
 from utils.payee_manager import payee_manager
 from utils.descripcion_manager import descripcion_manager
+from utils.ramo_manager import ramo_manager
 from utils.config import config
 from utils.logger import get_logger
 
@@ -151,6 +152,132 @@ class DescripcionManagerDialog(QDialog):
             QMessageBox.information(self, "✅ Éxito", "Descripción eliminada correctamente")
 
 
+class RamoManagerDialog(QDialog):
+    """Diálogo para gestionar ramos de pólizas."""
+    
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Administrar Ramos")
+        self.setModal(True)
+        self.setMinimumWidth(500)
+        self.setMinimumHeight(400)
+        
+        layout = QVBoxLayout(self)
+        
+        # Título
+        titulo = QLabel("Gestión de Ramos de Pólizas")
+        titulo.setStyleSheet("font-size: 14px; font-weight: bold; padding: 10px;")
+        layout.addWidget(titulo)
+        
+        # Lista de ramos
+        self.lista_ramos = QTableWidget()
+        self.lista_ramos.setColumnCount(1)
+        self.lista_ramos.setHorizontalHeaderLabels(["Ramo"])
+        self.lista_ramos.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        self.lista_ramos.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        layout.addWidget(self.lista_ramos)
+        
+        # Botones de acción
+        btn_layout = QHBoxLayout()
+        
+        btn_agregar = QPushButton("➕ Agregar")
+        btn_agregar.setMinimumHeight(35)
+        btn_agregar.clicked.connect(self.agregar_ramo)
+        
+        btn_editar = QPushButton("✏️ Editar")
+        btn_editar.setMinimumHeight(35)
+        btn_editar.clicked.connect(self.editar_ramo)
+        
+        btn_eliminar = QPushButton("🗑️ Eliminar")
+        btn_eliminar.setMinimumHeight(35)
+        btn_eliminar.clicked.connect(self.eliminar_ramo)
+        
+        btn_layout.addWidget(btn_agregar)
+        btn_layout.addWidget(btn_editar)
+        btn_layout.addWidget(btn_eliminar)
+        btn_layout.addStretch()
+        
+        layout.addLayout(btn_layout)
+        
+        # Botón cerrar
+        btn_cerrar = QPushButton("Cerrar")
+        btn_cerrar.setMinimumHeight(35)
+        btn_cerrar.clicked.connect(self.accept)
+        layout.addWidget(btn_cerrar)
+        
+        # Cargar ramos
+        self.cargar_ramos()
+    
+    def cargar_ramos(self):
+        """Carga los ramos en la tabla."""
+        ramos = ramo_manager.get_all()
+        self.lista_ramos.setRowCount(len(ramos))
+        
+        for i, ramo in enumerate(ramos):
+            self.lista_ramos.setItem(i, 0, QTableWidgetItem(ramo))
+    
+    def agregar_ramo(self):
+        """Agrega un nuevo ramo."""
+        from PyQt6.QtWidgets import QInputDialog
+        
+        texto, ok = QInputDialog.getText(
+            self,
+            "Nuevo Ramo",
+            "Ingrese el ramo:"
+        )
+        
+        if ok and texto.strip():
+            ramo_manager.add_ramo(texto.strip())
+            self.cargar_ramos()
+            QMessageBox.information(self, "✅ Éxito", "Ramo agregado correctamente")
+    
+    def editar_ramo(self):
+        """Edita el ramo seleccionado."""
+        from PyQt6.QtWidgets import QInputDialog
+        
+        row = self.lista_ramos.currentRow()
+        if row < 0:
+            QMessageBox.warning(self, "⚠️ Advertencia", "Seleccione un ramo para editar")
+            return
+        
+        ramo_actual = self.lista_ramos.item(row, 0).text()
+        
+        texto, ok = QInputDialog.getText(
+            self,
+            "Editar Ramo",
+            "Modifique el ramo:",
+            text=ramo_actual
+        )
+        
+        if ok and texto.strip():
+            # Eliminar el anterior y agregar el nuevo
+            ramo_manager.remove_ramo(ramo_actual)
+            ramo_manager.add_ramo(texto.strip())
+            self.cargar_ramos()
+            QMessageBox.information(self, "✅ Éxito", "Ramo modificado correctamente")
+    
+    def eliminar_ramo(self):
+        """Elimina el ramo seleccionado."""
+        row = self.lista_ramos.currentRow()
+        if row < 0:
+            QMessageBox.warning(self, "⚠️ Advertencia", "Seleccione un ramo para eliminar")
+            return
+        
+        ramo = self.lista_ramos.item(row, 0).text()
+        
+        respuesta = QMessageBox.question(
+            self,
+            "Confirmar Eliminación",
+            f"¿Está seguro de eliminar el ramo:\n\n{ramo}?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        
+        if respuesta == QMessageBox.StandardButton.Yes:
+            ramo_manager.remove_ramo(ramo)
+            self.cargar_ramos()
+            QMessageBox.information(self, "✅ Éxito", "Ramo eliminado correctamente")
+
+
 class AseguradoraDialog(QDialog):
     """Diálogo para agregar/editar aseguradoras."""
     
@@ -210,8 +337,25 @@ class PolizaDialog(QDialog):
         self.numero_input = QLineEdit(numero)
         self.numero_input.setPlaceholderText("Ej: VG-2026-0001")
         
-        self.tipo_input = QLineEdit(tipo)
+        # Ramo con combobox editable y botón de administración
+        layout_tipo = QHBoxLayout()
+        self.tipo_input = QComboBox()
+        self.tipo_input.setEditable(True)
         self.tipo_input.setPlaceholderText("Ej: VIDA GRUPO, SOAT, etc.")
+        # Cargar ramos guardados
+        self.tipo_input.addItems(ramo_manager.get_all())
+        # Establecer el valor actual si se proporcionó
+        if tipo:
+            self.tipo_input.setCurrentText(tipo)
+        
+        # Botón para administrar ramos
+        btn_admin_ramo = QPushButton("⚙️")
+        btn_admin_ramo.setMaximumWidth(40)
+        btn_admin_ramo.setToolTip("Administrar ramos")
+        btn_admin_ramo.clicked.connect(self.abrir_admin_ramos)
+        
+        layout_tipo.addWidget(self.tipo_input)
+        layout_tipo.addWidget(btn_admin_ramo)
         
         # Descripción con checkbox y combobox editable
         layout_plan = QHBoxLayout()
@@ -247,7 +391,7 @@ class PolizaDialog(QDialog):
         self.fecha_fin_input.setDate(fecha_fin if fecha_fin else QDate.currentDate().addYears(1))
         
         layout.addRow("Número de Póliza:", self.numero_input)
-        layout.addRow("Ramo:", self.tipo_input)
+        layout.addRow("Ramo:", layout_tipo)
         layout.addRow("Descripción:", layout_plan)
         layout.addRow("Inicio de Vigencia:", self.fecha_inicio_input)
         layout.addRow("Fin de Vigencia:", self.fecha_fin_input)
@@ -387,6 +531,11 @@ class PolizaDialog(QDialog):
     
     def get_data(self):
         """Retorna los datos ingresados."""
+        # Guardar ramo si es nuevo
+        tipo_text = self.tipo_input.currentText().strip()
+        if tipo_text:
+            ramo_manager.add_ramo(tipo_text)
+        
         # Guardar descripción si es nueva y está marcada
         plan_text = self.plan_input.currentText().strip()
         if plan_text and self.check_plan.isChecked():
@@ -394,7 +543,7 @@ class PolizaDialog(QDialog):
         
         return {
             'numero': self.numero_input.text().strip(),
-            'tipo': self.tipo_input.text().strip(),
+            'tipo': tipo_text,
             'plan': plan_text,
             'fecha_inicio': self.fecha_inicio_input.date(),
             'fecha_fin': self.fecha_fin_input.date(),
@@ -416,6 +565,16 @@ class PolizaDialog(QDialog):
             self.plan_input.clear()
             self.plan_input.addItems(descripcion_manager.get_all())
             self.plan_input.setCurrentText(texto_actual)
+    
+    def abrir_admin_ramos(self):
+        """Abre el diálogo de administración de ramos."""
+        dialog = RamoManagerDialog(self)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            # Recargar el combobox con los ramos actualizados
+            texto_actual = self.tipo_input.currentText()
+            self.tipo_input.clear()
+            self.tipo_input.addItems(ramo_manager.get_all())
+            self.tipo_input.setCurrentText(texto_actual)
 
 
 class GeneradorCartasGUI(QMainWindow):
