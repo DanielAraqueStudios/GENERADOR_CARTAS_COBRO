@@ -15,10 +15,10 @@ class MontosCobro(BaseModel):
     Representa los montos del cobro en formato normalizado y raw.
     """
     
-    prima: Decimal = Field(..., ge=0, decimal_places=2)
-    otros_rubros: Decimal = Field(default=Decimal('0.00'), ge=0, decimal_places=2)
-    impuesto: Decimal = Field(default=Decimal('0.00'), ge=0, decimal_places=2)
-    valor_externo: Decimal = Field(default=Decimal('0.00'), ge=0, decimal_places=2)
+    prima: Decimal = Field(...)
+    otros_rubros: Decimal = Field(default=Decimal('0.00'))
+    impuesto: Decimal = Field(default=Decimal('0.00'))
+    valor_externo: Decimal = Field(default=Decimal('0.00'))
     
     @computed_field
     @property
@@ -69,12 +69,10 @@ class Documento(BaseModel):
     # Aseguradora beneficiaria (quien recibe el pago)
     payee_company_name: str = Field(
         default="SEGUROS DE VIDA SURAMERICANA S.A.",
-        min_length=1,
         description="Nombre de la aseguradora que recibe el pago"
     )
     payee_company_nit: str = Field(
         default="890903790-5",
-        min_length=1,
         description="NIT de la aseguradora beneficiaria"
     )
     
@@ -89,9 +87,9 @@ class Documento(BaseModel):
     )
     
     # Firma
-    firmante_nombre: str = Field(..., min_length=1, max_length=60)
-    firmante_cargo: str = Field(..., min_length=1, max_length=50)
-    firmante_iniciales: Optional[str] = Field(default=None, max_length=10)
+    firmante_nombre: str = Field(..., description="Nombre del firmante")
+    firmante_cargo: str = Field(..., description="Cargo del firmante")
+    firmante_iniciales: Optional[str] = Field(default=None, description="Iniciales del firmante")
     
     # Estado del documento
     es_borrador: bool = Field(default=False, description="Si es True, se marca como BORRADOR")
@@ -105,11 +103,8 @@ class Documento(BaseModel):
     @field_validator('numero_carta')
     @classmethod
     def validate_numero_carta(cls, v: str) -> str:
-        """Valida el formato del número de carta."""
-        import re
-        if not re.match(r'^\d+ - \d{4}$', v):
-            raise ValueError("Número de carta debe tener formato: 15434 - 2025")
-        return v
+        """Retorna el número de carta tal cual."""
+        return v.strip()
     
     @computed_field
     @property

@@ -13,117 +13,55 @@ class FieldValidator:
     @staticmethod
     def validate_nit_colombiano(nit: str) -> Tuple[bool, Optional[str]]:
         """
-        Valida formato y dígito de verificación de NIT colombiano.
+        Valida que el NIT no esté vacío.
         
         Returns:
             Tuple[bool, Optional[str]]: (es_valido, mensaje_error)
         """
-        if not nit:
+        if not nit or not nit.strip():
             return False, "NIT no puede estar vacío"
-        
-        # Normalizar: remover espacios
-        nit = nit.strip().replace(' ', '')
-        
-        # Validar formato
-        if not re.match(r'^\d{9}-\d$', nit):
-            return False, "Formato de NIT inválido. Use: 123456789-0"
-        
-        # Extraer dígitos
-        digits = nit.replace('-', '')
-        base = digits[:9]
-        check_digit = int(digits[9])
-        
-        # Calcular dígito de verificación según DIAN
-        primes = [3, 7, 13, 17, 19, 23, 29, 37, 41]
-        try:
-            total = sum(int(base[i]) * primes[i] for i in range(9))
-            calculated_check = (11 - (total % 11)) % 11
-            
-            if calculated_check != check_digit:
-                return False, f"Dígito de verificación incorrecto. Debería ser: {calculated_check}"
-            
-            return True, None
-        except (ValueError, IndexError) as e:
-            return False, f"Error al validar NIT: {str(e)}"
+        return True, None
     
     @staticmethod
     def validate_telefono_colombiano(telefono: str) -> Tuple[bool, Optional[str]]:
         """
-        Valida teléfono colombiano (fijo o móvil).
+        Valida que el teléfono no esté vacío.
         
         Returns:
             Tuple[bool, Optional[str]]: (es_valido, mensaje_error)
         """
-        if not telefono:
+        if not telefono or not telefono.strip():
             return False, "Teléfono no puede estar vacío"
-        
-        # Remover espacios y guiones
-        telefono = telefono.strip().replace(' ', '').replace('-', '')
-        
-        # Validar solo dígitos
-        if not telefono.isdigit():
-            return False, "Teléfono solo debe contener dígitos"
-        
-        # Validar longitud (7-10 dígitos)
-        if not (7 <= len(telefono) <= 10):
-            return False, "Teléfono debe tener entre 7 y 10 dígitos"
-        
         return True, None
     
     @staticmethod
     def validate_numero_poliza(numero: str) -> Tuple[bool, Optional[str]]:
         """
-        Valida número de póliza (7 dígitos).
+        Valida que el número de póliza no esté vacío.
         
         Returns:
             Tuple[bool, Optional[str]]: (es_valido, mensaje_error)
         """
-        if not numero:
+        if not numero or not numero.strip():
             return False, "Número de póliza no puede estar vacío"
-        
-        numero = numero.strip()
-        
-        if not numero.isdigit():
-            return False, "Número de póliza solo debe contener dígitos"
-        
-        if len(numero) != 7:
-            return False, "Número de póliza debe tener exactamente 7 dígitos"
-        
         return True, None
     
     @staticmethod
     def validate_plan_poliza(plan: str) -> Tuple[bool, Optional[str]]:
         """
-        Valida formato de plan póliza (ej: "06  3144016" - dos espacios).
+        Valida que el plan de póliza no esté vacío.
         
         Returns:
             Tuple[bool, Optional[str]]: (es_valido, mensaje_error)
         """
-        if not plan:
+        if not plan or not plan.strip():
             return False, "Plan póliza no puede estar vacío"
-        
-        # Debe tener exactamente dos espacios consecutivos
-        if '  ' not in plan:
-            return False, "Plan póliza debe tener formato: 06  3144016 (dos espacios)"
-        
-        parts = plan.split('  ')
-        if len(parts) != 2:
-            return False, "Plan póliza debe tener formato: código  número"
-        
-        codigo, numero = parts
-        
-        if not codigo.isdigit() or len(codigo) != 2:
-            return False, "Código de plan debe ser 2 dígitos"
-        
-        if not numero.isdigit() or len(numero) != 7:
-            return False, "Número de póliza debe ser 7 dígitos"
-        
         return True, None
     
     @staticmethod
     def validate_positive_amount(amount: float) -> Tuple[bool, Optional[str]]:
         """
-        Valida que un monto sea positivo o cero.
+        Valida que un monto sea un número válido.
         
         Returns:
             Tuple[bool, Optional[str]]: (es_valido, mensaje_error)
@@ -132,9 +70,7 @@ class FieldValidator:
             return False, "Monto no puede estar vacío"
         
         try:
-            value = float(amount)
-            if value < 0:
-                return False, "Monto no puede ser negativo"
+            float(amount)
             return True, None
         except (ValueError, TypeError):
             return False, "Monto debe ser un número válido"
@@ -180,27 +116,13 @@ class FieldValidator:
     @staticmethod
     def validate_numero_carta(numero: str) -> Tuple[bool, Optional[str]]:
         """
-        Valida formato de número de carta (ej: "15434 - 2025").
+        Valida que el número de carta no esté vacío.
         
         Returns:
             Tuple[bool, Optional[str]]: (es_valido, mensaje_error)
         """
-        if not numero:
+        if not numero or not numero.strip():
             return False, "Número de carta no puede estar vacío"
-        
-        if not re.match(r'^\d+ - \d{4}$', numero):
-            return False, "Número de carta debe tener formato: 15434 - 2025"
-        
-        # Extraer año y validar
-        parts = numero.split(' - ')
-        try:
-            year = int(parts[1])
-            current_year = datetime.now().year
-            if year < 2000 or year > current_year + 1:
-                return False, f"Año debe estar entre 2000 y {current_year + 1}"
-        except (IndexError, ValueError):
-            return False, "Formato de año inválido"
-        
         return True, None
 
 

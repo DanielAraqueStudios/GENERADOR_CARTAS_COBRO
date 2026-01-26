@@ -52,9 +52,177 @@ class PayeeManager:
         """Crea las aseguradoras por defecto."""
         self.payees = [
             {
-                "name": "SEGUROS DE VIDA SURAMERICANA S.A.",
+                "name": "SEGUROS GENERALES SURAMERICANA S.A",
+                "nit": "890903407-5",
+                "link_pago": "WWW.SURA.COM",
+                "usage_count": 0
+            },
+            {
+                "name": "SEGUROS DE VIDA SURAMERICANA S.A",
                 "nit": "890903790-5",
                 "link_pago": "WWW.SURA.COM",
+                "usage_count": 0
+            },
+            {
+                "name": "ALLIANZ SEGUROS S.A",
+                "nit": "860001220-8",
+                "link_pago": "WWW.ALLIANZ.CO",
+                "usage_count": 0
+            },
+            {
+                "name": "ALLIANZ SEGUROS DE VIDA S.A",
+                "nit": "890982420-0",
+                "link_pago": "WWW.ALLIANZ.CO",
+                "usage_count": 0
+            },
+            {
+                "name": "HDI SEGUROS",
+                "nit": "860035827-0",
+                "link_pago": "WWW.HDI.COM.CO",
+                "usage_count": 0
+            },
+            {
+                "name": "SEGUROS DEL ESTADO S.A",
+                "nit": "860009578-0",
+                "link_pago": "WWW.SEGUROSDELESTADO.COM",
+                "usage_count": 0
+            },
+            {
+                "name": "SEGUROS DE VIDA DEL ESTADO",
+                "nit": "830003564-5",
+                "link_pago": "WWW.SEGUROSDELESTADO.COM",
+                "usage_count": 0
+            },
+            {
+                "name": "COMPANIA DE SEGUROS BOLIVAR S.A",
+                "nit": "860002400-4",
+                "link_pago": "WWW.SEGUROSBOLIVAR.COM",
+                "usage_count": 0
+            },
+            {
+                "name": "CHUBB SEGUROS COLOMBIA S.A.",
+                "nit": "860002183-5",
+                "link_pago": "WWW.CHUBB.COM/CO",
+                "usage_count": 0
+            },
+            {
+                "name": "SEGUROS MUNDIAL",
+                "nit": "860045179-2",
+                "link_pago": "WWW.SEGUROSMUNDIAL.COM.CO",
+                "usage_count": 0
+            },
+            {
+                "name": "MAPFRE SEGUROS GENERALES",
+                "nit": "860002180-0",
+                "link_pago": "WWW.MAPFRE.COM.CO",
+                "usage_count": 0
+            },
+            {
+                "name": "LA PREVISORA S A COMPANIA DE SEGUROS",
+                "nit": "890982420-0",
+                "link_pago": "WWW.LAPREVISORA.COM.CO",
+                "usage_count": 0
+            },
+            {
+                "name": "AXA COLPATRIA SEGUROS S.A",
+                "nit": "860002184-3",
+                "link_pago": "WWW.COLPATRIA.COM",
+                "usage_count": 0
+            },
+            {
+                "name": "AXA COLPATRIA SEGUROS DE VIDA S.A",
+                "nit": "860069988-6",
+                "link_pago": "WWW.COLPATRIA.COM",
+                "usage_count": 0
+            },
+            {
+                "name": "EMERMEDICA S.A SERVICIOS DE AMBULANCIA PREPAGADOS",
+                "nit": "900000000-0",
+                "link_pago": "WWW.EMERMEDICA.COM.CO",
+                "usage_count": 0
+            },
+            {
+                "name": "COMPANIA DE MEDICINA PREPAGADA COLSANITAS S.A.",
+                "nit": "860000000-0",
+                "link_pago": "WWW.COLSANITAS.COM",
+                "usage_count": 0
+            },
+            {
+                "name": "MEDISANITAS S.A.S COMPANIA DE MEDICINA PREPAGADA",
+                "nit": "900000001-0",
+                "link_pago": "WWW.MEDISANITAS.COM.CO",
+                "usage_count": 0
+            },
+            {
+                "name": "LA EQUIDAD SEGUROS GENERALES",
+                "nit": "860026819-1",
+                "link_pago": "WWW.LAEQUIDADSEGUROS.COOP",
+                "usage_count": 0
+            },
+            {
+                "name": "ASSIST CARD DE COLOMBIA SAS",
+                "nit": "900000002-0",
+                "link_pago": "WWW.ASSISTCARD.COM",
+                "usage_count": 0
+            },
+            {
+                "name": "COOMEVA MEDICINA PREPAGADA S.A.",
+                "nit": "805000427-1",
+                "link_pago": "WWW.COOMEVA.COM.CO",
+                "usage_count": 0
+            },
+            {
+                "name": "COLMENA SEGUROS",
+                "nit": "860066740-7",
+                "link_pago": "WWW.COLMENASEGUROS.COM",
+                "usage_count": 0
+            },
+            {
+                "name": "FUNERARIA SAN VICENTE S.A.",
+                "nit": "890900000-0",
+                "link_pago": "WWW.SANVICENTE.COM.CO",
+                "usage_count": 0
+            },
+            {
+                "name": "MAGENTA ASISTANCE S.A.S.",
+                "nit": "900000003-0",
+                "link_pago": "WWW.MAGENTA.COM.CO",
+                "usage_count": 0
+            },
+            {
+                "name": "COOMEVA EXPERIENCIA MEDICA SAS",
+                "nit": "900000004-0",
+                "link_pago": "WWW.COOMEVA.COM.CO",
+                "usage_count": 0
+            },
+            {
+                "name": "GRANCOLOMBIANA DE FIANZAS S.A.S",
+                "nit": "860000001-0",
+                "link_pago": "WWW.GRANFIANZAS.COM.CO",
+                "usage_count": 0
+            },
+            {
+                "name": "ASEGURADORA SOLIDARIA DE COLOMBIA",
+                "nit": "860524654-8",
+                "link_pago": "WWW.ASEGURADORASOLIDARIA.COM",
+                "usage_count": 0
+            },
+            {
+                "name": "POSITIVA COMPANIA DE SEGUROS S.A",
+                "nit": "800251440-2",
+                "link_pago": "WWW.POSITIVA.GOV.CO",
+                "usage_count": 0
+            },
+            {
+                "name": "SBS SEGUROS COLOMBIA S.A",
+                "nit": "860069988-6",
+                "link_pago": "WWW.SBS.COM.CO",
+                "usage_count": 0
+            },
+            {
+                "name": "ZURICH COLOMBIA SEGUROS S.A",
+                "nit": "860009834-7",
+                "link_pago": "WWW.ZURICH.CO",
                 "usage_count": 0
             }
         ]

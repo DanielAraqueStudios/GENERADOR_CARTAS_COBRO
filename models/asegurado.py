@@ -12,29 +12,22 @@ class Asegurado(BaseModel):
     
     razon_social: str = Field(
         ..., 
-        min_length=1, 
-        max_length=100,
         description="Razón social o nombre completo del cliente"
     )
     nit: str = Field(
         ..., 
-        pattern=r"^\d{9}-\d$",
-        description="NIT colombiano con dígito de verificación (formato: 123456789-0)"
+        description="NIT del cliente"
     )
     direccion: str = Field(
         ..., 
-        min_length=1, 
-        max_length=100,
         description="Dirección completa del cliente"
     )
     telefono: str = Field(
         ..., 
-        pattern=r"^\d{7,10}$",
-        description="Teléfono fijo o móvil (7-10 dígitos)"
+        description="Teléfono del cliente"
     )
     ciudad: str = Field(
         ..., 
-        min_length=1,
         description="Ciudad de residencia del cliente"
     )
     
@@ -44,34 +37,11 @@ class Asegurado(BaseModel):
         """Convierte la razón social a mayúsculas."""
         return v.upper().strip()
     
-    @field_validator('nit')
+    @field_validator('ciudad')
     @classmethod
-    def validate_nit(cls, v: str) -> str:
-        """
-        Valida el formato y dígito de verificación del NIT colombiano.
-        
-        Algoritmo de dígito de verificación según DIAN Colombia.
-        """
-        if not v or len(v) < 11:
-            raise ValueError("NIT debe tener formato 123456789-0")
-        
-        # Extraer dígitos sin el guión
-        digits = v.replace('-', '')
-        if len(digits) != 10:
-            raise ValueError("NIT debe tener 9 dígitos + 1 dígito de verificación")
-        
-        # Validar dígito de verificación
-        base = digits[:9]
-        check_digit = int(digits[9])
-        
-        primes = [3, 7, 13, 17, 19, 23, 29, 37, 41]
-        total = sum(int(base[i]) * primes[i] for i in range(9))
-        calculated_check = (11 - (total % 11)) % 11
-        
-        if calculated_check != check_digit:
-            raise ValueError(f"Dígito de verificación inválido. Esperado: {calculated_check}, Recibido: {check_digit}")
-        
-        return v
+    def uppercase_ciudad(cls, v: str) -> str:
+        """Convierte la ciudad a mayúsculas."""
+        return v.upper().strip()
     
     def model_dump_for_pdf(self) -> dict:
         """Retorna datos formateados para insertar en el PDF."""

@@ -3,29 +3,147 @@
     {
       "name": "SEGUROS DE VIDA SURAMERICANA S.A.",
       "nit": "890903790-5",
+      "link_pago": "WWW.SURA.COM",
       "usage_count": 0
     },
     {
       "name": "SEGUROS BOLÍVAR S.A.",
-      "nit": "860002503-4",
-      "usage_count": 27,
-      "link_pago": "https://www.grupobolivar.com.co/"
-    },
-    {
-      "name": "POSITIVA COMPAÑÍA DE SEGUROS S.A.",
-      "nit": "800235861-9",
-      "usage_count": 1
+      "nit": "860002400-4",
+      "link_pago": "WWW.SEGUROSBOLIVAR.COM",
+      "usage_count": 0
     },
     {
       "name": "SEGUROS DEL ESTADO S.A.",
-      "nit": "860028415-1",
-      "usage_count": 1
+      "nit": "860009578-0",
+      "link_pago": "WWW.SEGUROSDELESTADO.COM",
+      "usage_count": 0
+    },
+    {
+      "name": "MAPFRE SEGUROS GENERALES DE COLOMBIA S.A.",
+      "nit": "860002180-0",
+      "link_pago": "WWW.MAPFRE.COM.CO",
+      "usage_count": 0
+    },
+    {
+      "name": "LIBERTY SEGUROS S.A.",
+      "nit": "860002159-2",
+      "link_pago": "WWW.LIBERTYSEGUROS.CO",
+      "usage_count": 0
+    },
+    {
+      "name": "ALLIANZ SEGUROS S.A.",
+      "nit": "860001220-8",
+      "link_pago": "WWW.ALLIANZ.CO",
+      "usage_count": 0
     },
     {
       "name": "AXA COLPATRIA SEGUROS S.A.",
-      "nit": "860037013-8",
-      "usage_count": 1
+      "nit": "860002184-3",
+      "link_pago": "WWW.COLPATRIA.COM",
+      "usage_count": 0
+    },
+    {
+      "name": "SEGUROS GENERALES SURAMERICANA S.A.",
+      "nit": "890903407-5",
+      "link_pago": "WWW.SURA.COM",
+      "usage_count": 0
+    },
+    {
+      "name": "HDI SEGUROS S.A.",
+      "nit": "860035827-0",
+      "link_pago": "WWW.HDI.COM.CO",
+      "usage_count": 0
+    },
+    {
+      "name": "CHUBB SEGUROS COLOMBIA S.A.",
+      "nit": "860002183-5",
+      "link_pago": "WWW.CHUBB.COM/CO",
+      "usage_count": 0
+    },
+    {
+      "name": "ZURICH COLOMBIA SEGUROS S.A.",
+      "nit": "860009834-7",
+      "link_pago": "WWW.ZURICH.CO",
+      "usage_count": 0
+    },
+    {
+      "name": "EQUIDAD SEGUROS S.A.",
+      "nit": "860026819-1",
+      "link_pago": "WWW.LAEQUIDADSEGUROS.COOP",
+      "usage_count": 0
+    },
+    {
+      "name": "PREVISORA SEGUROS S.A.",
+      "nit": "890982420-0",
+      "link_pago": "WWW.LAPREVISORA.COM.CO",
+      "usage_count": 0
+    },
+    {
+      "name": "ASEGURADORA SOLIDARIA DE COLOMBIA",
+      "nit": "860524654-8",
+      "link_pago": "WWW.ASEGURADORASOLIDARIA.COM",
+      "usage_count": 0
+    },
+    {
+      "name": "SEGUROS MUNDIAL S.A.",
+      "nit": "860045179-2",
+      "link_pago": "WWW.SEGUROSMUNDIAL.COM.CO",
+      "usage_count": 0
+    },
+    {
+      "name": "SBS SEGUROS COLOMBIA S.A.",
+      "nit": "860069988-6",
+      "link_pago": "WWW.SBS.COM.CO",
+      "usage_count": 0
+    },
+    {
+      "name": "METLIFE COLOMBIA SEGUROS DE VIDA S.A.",
+      "nit": "800153749-4",
+      "link_pago": "WWW.METLIFE.COM.CO",
+      "usage_count": 0
+    },
+    {
+      "name": "POSITIVA COMPAÑÍA DE SEGUROS S.A.",
+      "nit": "800251440-2",
+      "link_pago": "WWW.POSITIVA.GOV.CO",
+      "usage_count": 0
+    },
+    {
+      "name": "EQUIDAD SEGUROS DE VIDA S.A.",
+      "nit": "860066740-7",
+      "link_pago": "WWW.LAEQUIDADSEGUROS.COOP",
+      "usage_count": 0
+    },
+    {
+      "name": "CARDIF COLOMBIA SEGUROS GENERALES S.A.",
+      "nit": "830122566-1",
+      "link_pago": "WWW.BNP-CARDIF.CO",
+      "usage_count": 0
+    },
+    {
+      "name": "QBE SEGUROS S.A.",
+      "nit": "860035827-2",
+      "link_pago": "WWW.QBE.COM/CO",
+      "usage_count": 0
+    },
+    {
+      "name": "SEGUROS DE RIESGOS LABORALES SURAMERICANA S.A.",
+      "nit": "800144331-9",
+      "link_pago": "WWW.SURA.COM",
+      "usage_count": 0
+    },
+    {
+      "name": "ESTADO SALUD S.A.",
+      "nit": "830003564-5",
+      "link_pago": "WWW.SEGUROSDELESTADO.COM",
+      "usage_count": 0
+    },
+    {
+      "name": "MAPFRE SEGUROS DE VIDA DE COLOMBIA S.A.",
+      "nit": "830000577-1",
+      "link_pago": "WWW.MAPFRE.COM.CO",
+      "usage_count": 0
     }
   ],
-  "last_updated": "c:\\Users\\danie\\Documents\\EMPRESA\\SEGUROS UNIÓN\\AUTOMATIZACIONES\\GENERADOR_CARTAS_COBRO\\utils"
+  "last_updated": "C:\\Users\\danie\\Documents\\EMPRESA\\SEGUROS UNIÓN\\AUTOMATIZACIONES\\GENERADOR_CARTAS_COBRO\\utils"
 }

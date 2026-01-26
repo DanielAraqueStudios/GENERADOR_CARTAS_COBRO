@@ -2,7 +2,106 @@
 
 Sistema profesional de generación automática de cartas de cobro en formato PDF, diseñado para SEGUROS UNIÓN con interfaz gráfica moderna en dark mode, gestión completa de aseguradoras y generación de ejecutables standalone.
 
-## 🎯 Objetivo del Proyecto
+## � Novedades de esta Versión
+
+### ✨ Mejoras en Gestión de Pólizas
+
+#### **Sistema de Montos Independientes por Póliza**
+- ✅ Cada póliza ahora tiene sus propios montos (Prima, IVA, Otros Rubros)
+- ✅ El total general se calcula automáticamente sumando todas las pólizas activas
+- ✅ Checkboxes individuales para controlar qué montos se incluyen por póliza
+
+#### **Cálculo Automático de IVA**
+- ✅ Selector de porcentaje de IVA: **19%** o **5%**
+- ✅ Cálculo automático basado en el valor de la Prima
+- ✅ Fórmula: `IVA = Prima × Porcentaje seleccionado`
+- ✅ Se recalcula al cambiar la prima o el porcentaje
+- ✅ Sigue siendo editable manualmente si es necesario
+
+#### **Botón Modificar Póliza**
+- ✅ Permite editar pólizas existentes en la tabla
+- ✅ Similar al botón "Modificar Aseguradora"
+- ✅ Carga todos los datos actuales para modificación
+
+#### **Gestión de Descripciones**
+- ✅ Campo "Descripción" ahora es un combobox editable
+- ✅ Guarda automáticamente descripciones nuevas
+- ✅ Botón ⚙️ para abrir administrador de descripciones
+- ✅ **Administrador completo**: Agregar, Editar, Eliminar descripciones
+- ✅ Persistencia en `logs/descripciones.json`
+- ✅ 5 descripciones predefinidas incluidas
+
+### 📋 Mejoras en Presentación de PDF
+
+#### **Formato de Tabla Optimizado**
+- ✅ Columnas: Ramo, Descripción, Doc. (eliminadas fechas de vigencia)
+- ✅ Cada fila muestra montos individuales de la póliza
+- ✅ Columna "Total" por póliza
+- ✅ Descripción solo se muestra si checkbox está activo
+
+#### **Link de Pago Mejorado**
+- ✅ Ahora aparece como **hipervínculo azul clickeable**
+- ✅ Auto-agrega "https://" si no está presente
+- ✅ Formato: "PUEDE REALIZAR SUS PAGOS POR PSE EN LA PAGINA WEB [link]"
+
+#### **Sección ASUNTO Simplificada**
+- ✅ Eliminado nombre del cliente (evita duplicación)
+- ✅ Solo muestra: Tipo de póliza y número
+
+#### **Sección Destinatario Optimizada**
+- ✅ Eliminada dirección del cliente
+- ✅ Muestra: Señores, Nombre, Ciudad, NIT
+
+#### **Detalle de Pago Simplificado**
+- ✅ Eliminada línea "CUOTA MENSUAL N° X VIGENCIA..."
+- ✅ Solo muestra: "VALOR A PAGAR A FAVOR DE..." y el monto total
+
+#### **Campo Retorno Opcional**
+- ✅ Nuevo campo editable "Retorno"
+- ✅ Checkbox para incluir/excluir del PDF
+- ✅ Aparece debajo del valor a pagar si está activo
+- ✅ Ejemplo: "RETORNO: Retorno a cuenta de ahorros del titular"
+
+#### **Footer Centrado**
+- ✅ Dirección y email ahora están **centrados**
+- ✅ Mejor presentación profesional del documento
+
+### 🏢 Base de Datos de Aseguradoras
+
+#### **24 Aseguradoras Colombianas Precargadas**
+- ✅ Seguros Bolívar, Seguros del Estado, Mapfre, Liberty, Allianz
+- ✅ AXA Colpatria, Chubb, Zurich, Equidad, Previsora
+- ✅ HDI, SBS, MetLife, Positiva, Aseguradora Solidaria
+- ✅ Y más... (ver lista completa en `utils/payee_manager.py`)
+- ✅ Incluye NITs y enlaces de pago verificados
+
+### 🔓 Validaciones Flexibles
+
+#### **Sin Restricciones de Formato**
+- ✅ **NIT**: Acepta cualquier formato (no solo colombiano)
+- ✅ **Teléfono**: Acepta letras, guiones, espacios, cualquier formato
+- ✅ **Números**: Sin límites de longitud
+- ✅ **Montos**: Permite valores negativos si es necesario
+- ✅ **Fechas**: Sin validación de orden (vigencia_fin puede ser antes de inicio)
+- ✅ **Textos**: Sin límites de caracteres en ningún campo
+
+#### **Validación Mínima**
+- ⚠️ Solo verifica que campos obligatorios no estén vacíos
+- ⚠️ Números deben ser valores numéricos válidos
+
+### 🎨 Mejoras de Interfaz
+
+#### **Tabla de Pólizas Actualizada**
+- 7 columnas: Número, Tipo, Descripción, Prima, IVA, Otros, Total
+- Muestra "-" para campos desactivados
+- Resaltado de fila seleccionada
+
+#### **Diálogos Mejorados**
+- Diálogo de póliza con selector de IVA integrado
+- Administrador de descripciones con tabla y CRUD completo
+- Botones con iconos y colores distintivos
+
+## �🎯 Objetivo del Proyecto
 
 Automatizar la generación de cartas de cobro personalizadas con:
 - **Interfaz gráfica moderna** (PyQt6 Dark Mode) para captura de datos

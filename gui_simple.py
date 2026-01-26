@@ -18,10 +18,137 @@ from PyQt6.QtGui import QFont, QIcon
 from models.documento import Documento, Asegurado, Poliza, MontosCobro
 from generators.carta_cobro_generator import CartaCobroGenerator
 from utils.payee_manager import payee_manager
+from utils.descripcion_manager import descripcion_manager
 from utils.config import config
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
+
+
+class DescripcionManagerDialog(QDialog):
+    """Diálogo para gestionar descripciones de pólizas."""
+    
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Administrar Descripciones")
+        self.setModal(True)
+        self.setMinimumWidth(500)
+        self.setMinimumHeight(400)
+        
+        layout = QVBoxLayout(self)
+        
+        # Título
+        titulo = QLabel("Gestión de Descripciones de Pólizas")
+        titulo.setStyleSheet("font-size: 14px; font-weight: bold; padding: 10px;")
+        layout.addWidget(titulo)
+        
+        # Lista de descripciones
+        self.lista_descripciones = QTableWidget()
+        self.lista_descripciones.setColumnCount(1)
+        self.lista_descripciones.setHorizontalHeaderLabels(["Descripción"])
+        self.lista_descripciones.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        self.lista_descripciones.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        layout.addWidget(self.lista_descripciones)
+        
+        # Botones de acción
+        btn_layout = QHBoxLayout()
+        
+        btn_agregar = QPushButton("➕ Agregar")
+        btn_agregar.setMinimumHeight(35)
+        btn_agregar.clicked.connect(self.agregar_descripcion)
+        
+        btn_editar = QPushButton("✏️ Editar")
+        btn_editar.setMinimumHeight(35)
+        btn_editar.clicked.connect(self.editar_descripcion)
+        
+        btn_eliminar = QPushButton("🗑️ Eliminar")
+        btn_eliminar.setMinimumHeight(35)
+        btn_eliminar.clicked.connect(self.eliminar_descripcion)
+        
+        btn_layout.addWidget(btn_agregar)
+        btn_layout.addWidget(btn_editar)
+        btn_layout.addWidget(btn_eliminar)
+        btn_layout.addStretch()
+        
+        layout.addLayout(btn_layout)
+        
+        # Botón cerrar
+        btn_cerrar = QPushButton("Cerrar")
+        btn_cerrar.setMinimumHeight(35)
+        btn_cerrar.clicked.connect(self.accept)
+        layout.addWidget(btn_cerrar)
+        
+        # Cargar descripciones
+        self.cargar_descripciones()
+    
+    def cargar_descripciones(self):
+        """Carga las descripciones en la tabla."""
+        descripciones = descripcion_manager.get_all()
+        self.lista_descripciones.setRowCount(len(descripciones))
+        
+        for i, desc in enumerate(descripciones):
+            self.lista_descripciones.setItem(i, 0, QTableWidgetItem(desc))
+    
+    def agregar_descripcion(self):
+        """Agrega una nueva descripción."""
+        from PyQt6.QtWidgets import QInputDialog
+        
+        texto, ok = QInputDialog.getText(
+            self,
+            "Nueva Descripción",
+            "Ingrese la descripción:"
+        )
+        
+        if ok and texto.strip():
+            descripcion_manager.add_descripcion(texto.strip())
+            self.cargar_descripciones()
+            QMessageBox.information(self, "✅ Éxito", "Descripción agregada correctamente")
+    
+    def editar_descripcion(self):
+        """Edita la descripción seleccionada."""
+        from PyQt6.QtWidgets import QInputDialog
+        
+        row = self.lista_descripciones.currentRow()
+        if row < 0:
+            QMessageBox.warning(self, "⚠️ Advertencia", "Seleccione una descripción para editar")
+            return
+        
+        desc_actual = self.lista_descripciones.item(row, 0).text()
+        
+        texto, ok = QInputDialog.getText(
+            self,
+            "Editar Descripción",
+            "Modifique la descripción:",
+            text=desc_actual
+        )
+        
+        if ok and texto.strip():
+            # Eliminar la anterior y agregar la nueva
+            descripcion_manager.remove_descripcion(desc_actual)
+            descripcion_manager.add_descripcion(texto.strip())
+            self.cargar_descripciones()
+            QMessageBox.information(self, "✅ Éxito", "Descripción modificada correctamente")
+    
+    def eliminar_descripcion(self):
+        """Elimina la descripción seleccionada."""
+        row = self.lista_descripciones.currentRow()
+        if row < 0:
+            QMessageBox.warning(self, "⚠️ Advertencia", "Seleccione una descripción para eliminar")
+            return
+        
+        desc = self.lista_descripciones.item(row, 0).text()
+        
+        respuesta = QMessageBox.question(
+            self,
+            "Confirmar Eliminación",
+            f"¿Está seguro de eliminar la descripción:\n\n{desc}?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        
+        if respuesta == QMessageBox.StandardButton.Yes:
+            descripcion_manager.remove_descripcion(desc)
+            self.cargar_descripciones()
+            QMessageBox.information(self, "✅ Éxito", "Descripción eliminada correctamente")
 
 
 class AseguradoraDialog(QDialog):
@@ -86,16 +213,30 @@ class PolizaDialog(QDialog):
         self.tipo_input = QLineEdit(tipo)
         self.tipo_input.setPlaceholderText("Ej: VIDA GRUPO, SOAT, etc.")
         
-        # Descripción con checkbox
+        # Descripción con checkbox y combobox editable
         layout_plan = QHBoxLayout()
         self.check_plan = QCheckBox("")
         self.check_plan.setChecked(check_plan)
-        self.plan_input = QLineEdit(plan)
+        self.plan_input = QComboBox()
+        self.plan_input.setEditable(True)
         self.plan_input.setPlaceholderText("Ej: Plan Empresarial Plus")
+        # Cargar descripciones guardadas
+        self.plan_input.addItems(descripcion_manager.get_all())
+        # Establecer el valor actual si se proporcionó
+        if plan:
+            self.plan_input.setCurrentText(plan)
         self.plan_input.setEnabled(check_plan)
         self.check_plan.stateChanged.connect(lambda: self.plan_input.setEnabled(self.check_plan.isChecked()))
+        
+        # Botón para administrar descripciones
+        btn_admin_desc = QPushButton("⚙️")
+        btn_admin_desc.setMaximumWidth(40)
+        btn_admin_desc.setToolTip("Administrar descripciones")
+        btn_admin_desc.clicked.connect(self.abrir_admin_descripciones)
+        
         layout_plan.addWidget(self.check_plan)
         layout_plan.addWidget(self.plan_input)
+        layout_plan.addWidget(btn_admin_desc)
         
         self.fecha_inicio_input = QDateEdit()
         self.fecha_inicio_input.setCalendarPopup(True)
@@ -127,20 +268,40 @@ class PolizaDialog(QDialog):
         self.prima_input.setEnabled(check_prima)
         self.check_prima.stateChanged.connect(lambda: self.prima_input.setEnabled(self.check_prima.isChecked()))
         self.prima_input.textChanged.connect(self.calcular_total)
+        self.prima_input.textChanged.connect(self.calcular_iva_automatico)
         layout_prima.addWidget(self.check_prima, 1)
         layout_prima.addWidget(self.prima_input, 2)
         layout_montos.addLayout(layout_prima)
         
-        # IVA
+        # IVA con selector de porcentaje
         layout_iva = QHBoxLayout()
-        self.check_iva = QCheckBox("IVA ($):")
+        self.check_iva = QCheckBox("IVA:")
         self.check_iva.setChecked(check_iva)
         self.check_iva.setStyleSheet("QCheckBox { font-weight: bold; }")
+        
+        # Selector de porcentaje
+        self.iva_porcentaje = QComboBox()
+        self.iva_porcentaje.addItems(["19%", "5%"])
+        self.iva_porcentaje.setMaximumWidth(70)
+        self.iva_porcentaje.currentTextChanged.connect(self.calcular_iva_automatico)
+        self.iva_porcentaje.setEnabled(check_iva)
+        
         self.iva_input = QLineEdit(iva)
+        self.iva_input.setPlaceholderText("Auto-calculado")
         self.iva_input.setEnabled(check_iva)
-        self.check_iva.stateChanged.connect(lambda: self.iva_input.setEnabled(self.check_iva.isChecked()))
+        
+        def toggle_iva():
+            enabled = self.check_iva.isChecked()
+            self.iva_input.setEnabled(enabled)
+            self.iva_porcentaje.setEnabled(enabled)
+            if enabled:
+                self.calcular_iva_automatico()
+        
+        self.check_iva.stateChanged.connect(toggle_iva)
         self.iva_input.textChanged.connect(self.calcular_total)
+        
         layout_iva.addWidget(self.check_iva, 1)
+        layout_iva.addWidget(self.iva_porcentaje)
         layout_iva.addWidget(self.iva_input, 2)
         layout_montos.addLayout(layout_iva)
         
@@ -171,7 +332,8 @@ class PolizaDialog(QDialog):
         group_montos.setLayout(layout_montos)
         main_layout.addWidget(group_montos)
         
-        # Calcular total inicial
+        # Calcular IVA y total inicial
+        self.calcular_iva_automatico()
         self.calcular_total()
         
         # Botones
@@ -182,6 +344,22 @@ class PolizaDialog(QDialog):
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
         main_layout.addWidget(buttons)
+    
+    def calcular_iva_automatico(self):
+        """Calcula automáticamente el IVA basado en la prima y el porcentaje seleccionado."""
+        if not self.check_iva.isChecked():
+            return
+        
+        try:
+            prima = float(self.prima_input.text().replace(',', ''))
+            porcentaje_text = self.iva_porcentaje.currentText().replace('%', '')
+            porcentaje = float(porcentaje_text) / 100
+            
+            iva_calculado = prima * porcentaje
+            self.iva_input.setText(f"{iva_calculado:,.0f}")
+        except (ValueError, AttributeError):
+            # Si hay error, dejar el campo vacío o no hacer nada
+            pass
     
     def calcular_total(self):
         """Calcula el total sumando los montos activos."""
@@ -209,10 +387,15 @@ class PolizaDialog(QDialog):
     
     def get_data(self):
         """Retorna los datos ingresados."""
+        # Guardar descripción si es nueva y está marcada
+        plan_text = self.plan_input.currentText().strip()
+        if plan_text and self.check_plan.isChecked():
+            descripcion_manager.add_descripcion(plan_text)
+        
         return {
             'numero': self.numero_input.text().strip(),
             'tipo': self.tipo_input.text().strip(),
-            'plan': self.plan_input.text().strip(),
+            'plan': plan_text,
             'fecha_inicio': self.fecha_inicio_input.date(),
             'fecha_fin': self.fecha_fin_input.date(),
             'prima': self.prima_input.text().strip(),
@@ -223,6 +406,16 @@ class PolizaDialog(QDialog):
             'check_otros': self.check_otros.isChecked(),
             'check_plan': self.check_plan.isChecked()
         }
+    
+    def abrir_admin_descripciones(self):
+        """Abre el diálogo de administración de descripciones."""
+        dialog = DescripcionManagerDialog(self)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            # Recargar el combobox con las descripciones actualizadas
+            texto_actual = self.plan_input.currentText()
+            self.plan_input.clear()
+            self.plan_input.addItems(descripcion_manager.get_all())
+            self.plan_input.setCurrentText(texto_actual)
 
 
 class GeneradorCartasGUI(QMainWindow):
@@ -729,7 +922,27 @@ class GeneradorCartasGUI(QMainWindow):
         """)
         btn_eliminar_poliza.clicked.connect(self.eliminar_poliza)
         
+        btn_modificar_poliza = QPushButton("✏️ Modificar Póliza")
+        btn_modificar_poliza.setMinimumHeight(40)
+        btn_modificar_poliza.setStyleSheet("""
+            QPushButton {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #ffa726, stop:1 #fb8c00);
+                color: white;
+                font-size: 13px;
+                font-weight: 600;
+                border-radius: 8px;
+                padding: 8px 16px;
+            }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #ffb74d, stop:1 #ff9800);
+            }
+        """)
+        btn_modificar_poliza.clicked.connect(self.modificar_poliza)
+        
         btn_layout.addWidget(btn_agregar_poliza)
+        btn_layout.addWidget(btn_modificar_poliza)
         btn_layout.addWidget(btn_eliminar_poliza)
         btn_layout.addStretch()
         layout_polizas.addLayout(btn_layout)
@@ -1515,6 +1728,40 @@ class GeneradorCartasGUI(QMainWindow):
             self.actualizar_tabla_polizas()
             self.calcular_total_general()
             QMessageBox.information(self, "✅ Éxito", "Póliza eliminada correctamente")
+    
+    def modificar_poliza(self):
+        """Modifica la póliza seleccionada en la tabla."""
+        row = self.tabla_polizas.currentRow()
+        if row < 0:
+            QMessageBox.warning(self, "⚠️ Advertencia", "Seleccione una póliza para modificar")
+            return
+        
+        # Obtener datos de la póliza actual
+        poliza_actual = self.polizas_list[row]
+        
+        # Abrir diálogo con datos pre-cargados
+        dialog = PolizaDialog(
+            parent=self,
+            numero=poliza_actual.get('numero', ''),
+            tipo=poliza_actual.get('tipo', ''),
+            plan=poliza_actual.get('plan', ''),
+            fecha_inicio=poliza_actual.get('fecha_inicio', QDate.currentDate()),
+            fecha_fin=poliza_actual.get('fecha_fin', QDate.currentDate().addYears(1)),
+            prima=poliza_actual.get('prima', '0'),
+            iva=poliza_actual.get('iva', '0'),
+            otros=poliza_actual.get('otros', '0'),
+            check_prima=poliza_actual.get('check_prima', True),
+            check_iva=poliza_actual.get('check_iva', True),
+            check_otros=poliza_actual.get('check_otros', True),
+            check_plan=poliza_actual.get('check_plan', True)
+        )
+        
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            # Actualizar la póliza en la lista
+            self.polizas_list[row] = dialog.get_data()
+            self.actualizar_tabla_polizas()
+            self.calcular_total_general()
+            QMessageBox.information(self, "✅ Éxito", "Póliza modificada correctamente")
     
     def actualizar_tabla_polizas(self):
         """Actualiza la tabla de pólizas con los datos de la lista (sin fechas de vigencia)."""

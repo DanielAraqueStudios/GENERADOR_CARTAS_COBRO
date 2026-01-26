@@ -13,8 +13,6 @@ class Poliza(BaseModel):
     
     numero: str = Field(
         ..., 
-        min_length=1,
-        max_length=50,
         description="Número de póliza"
     )
     tipo: str = Field(
@@ -31,8 +29,6 @@ class Poliza(BaseModel):
     )
     cuota_numero: int = Field(
         default=1,
-        ge=1,
-        le=999,
         description="Número de cuota mensual"
     )
     vigencia_inicio: date = Field(
@@ -47,29 +43,13 @@ class Poliza(BaseModel):
     @field_validator('tipo')
     @classmethod
     def normalize_tipo(cls, v: str) -> str:
-        """Normaliza el tipo de póliza."""
-        # Mapeo de valores comunes a formato estándar
-        tipo_map = {
-            "VIDA GRUPO": "POLIZA DE VIDA GRUPO",
-            "VIDA INDIVIDUAL": "POLIZA INDIVIDUAL",
-            "COLECTIVA": "POLIZA COLECTIVA",
-            "SOAT": "POLIZA SOAT",
-            "ACCIDENTES PERSONALES": "POLIZA DE ACCIDENTES PERSONALES",
-            "SALUD": "POLIZA DE SALUD",
-        }
-        # Si ya tiene el formato correcto, retornar
-        if v.upper().startswith("POLIZA"):
-            return v.upper()
-        # Si está en el mapeo, convertir
-        v_upper = v.upper()
-        return tipo_map.get(v_upper, f"POLIZA DE {v_upper}")
+        """Retorna el tipo tal cual sin validaciones."""
+        return v.strip()
     
     @field_validator('vigencia_fin')
     @classmethod
     def validate_vigencia(cls, v: date, info) -> date:
-        """Valida que la fecha de fin sea posterior a la de inicio."""
-        if 'vigencia_inicio' in info.data and v <= info.data['vigencia_inicio']:
-            raise ValueError("La fecha de fin de vigencia debe ser posterior a la fecha de inicio")
+        """Retorna la fecha tal cual sin validaciones."""
         return v
     
     @property
