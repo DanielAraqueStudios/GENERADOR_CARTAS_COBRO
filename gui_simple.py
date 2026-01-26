@@ -440,6 +440,9 @@ class PolizaDialog(QDialog):
             self.iva_porcentaje.setEnabled(enabled)
             if enabled:
                 self.calcular_iva_automatico()
+            else:
+                # Si se desmarca, poner IVA en cero
+                self.iva_input.setText("0")
         
         self.check_iva.stateChanged.connect(toggle_iva)
         self.iva_input.textChanged.connect(self.calcular_total)
