@@ -50,7 +50,7 @@ class Documento(BaseModel):
     # Metadatos del documento
     ciudad_emision: str = Field(default="Medellín", description="Ciudad donde se emite la carta")
     fecha_emision: date = Field(default_factory=date.today, description="Fecha de emisión")
-    numero_carta: str = Field(..., description="Número de la carta (formato: 15434 - 2025)")
+    numero_carta: str = Field(..., description="Número de la carta")
     mes_cobro: Literal[
         "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
         "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
