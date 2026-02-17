@@ -63,4 +63,3 @@ desktop.ini
 # Packaging
 *.spec
 build/
-dist/
